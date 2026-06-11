@@ -42,7 +42,15 @@ aegis-foundry heatmap                        # ATT&CK coverage before/after
 
 Drop `--auto-approve` to experience the human-in-the-loop governance gate: the Governor prints the evidence summary and waits for `[a]ctive / [s]hadow / [r]eject`.
 
-Run the tests: `pip install -e .[dev] && pytest` (21 tests, including the full end-to-end storyline).
+Run the tests: `pip install -e .[dev] && pytest` (25 tests, including the full end-to-end storyline and a real-HTTP web-approval flow).
+
+## Web console
+
+```bash
+aegis-foundry ui          # then open http://127.0.0.1:8787
+```
+
+A stdlib-only web console — no frameworks, no CDN, works fully offline. It shows the **live pipeline stepper** as the nine agents hand off, **browser-based approvals** where each pending rule renders as a card with its full evidence pack (SPL diff, backtest table, forecast band, policy checks), the **ATT&CK coverage panel** whose gap cells flip to FORGED BY AEGIS as deployments land, and the streaming **agent flight recorder**. Recommended demo flow: start a run from the console with auto-approve **off** (the default), then make the active/shadow/reject call from the browser — the Governor blocks on your decision and falls back to safe shadow deployment on timeout.
 
 ## Live mode (real Splunk)
 
@@ -98,6 +106,10 @@ splunk_app/             installable Splunk app (dashboards, alert action, conf)
 scripts/package_app.py  builds dist/aegis_foundry.spl
 tests/                  21 tests incl. the full e2e storyline
 ```
+
+## Submission
+
+- **[docs/SUBMISSION.md](docs/SUBMISSION.md)** — the Devpost kit: elevator pitch, paste-ready description, 3-minute video script, rules checklist, and judge Q&A.
 
 ---
 

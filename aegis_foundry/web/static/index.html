@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aegis Foundry — Detection Engineering Console</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="glyph" aria-hidden="true">&#x2B21;</span>
+    <div class="brand-text">
+      <h1>AEGIS FOUNDRY</h1>
+      <p class="subtitle">Autonomous Detection Engineering for Splunk</p>
+    </div>
+  </div>
+  <div class="topbar-controls">
+    <span id="stage-indicator" class="stage-indicator" hidden></span>
+    <span id="mode-pill" class="pill pill-idle">IDLE</span>
+    <label class="check" for="auto-approve">
+      <input type="checkbox" id="auto-approve"> auto-approve
+    </label>
+    <button type="button" id="start-run" class="btn btn-primary">Start run</button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <section class="col-main">
+
+    <section class="panel" id="panel-pipeline" aria-label="Pipeline">
+      <div class="panel-head">
+        <h2>Pipeline</h2>
+        <span id="pipeline-run" class="panel-tag mono"></span>
+      </div>
+      <ol id="stepper" class="stepper"></ol>
+    </section>
+
+    <section class="panel" id="panel-coverage" aria-label="ATT&amp;CK Coverage">
+      <div class="panel-head">
+        <h2>ATT&amp;CK Coverage</h2>
+      </div>
+      <div id="coverage-cards" class="coverage-grid"></div>
+    </section>
+
+    <section class="panel" id="panel-noise" aria-label="Noise Engineering">
+      <div class="panel-head">
+        <h2>Noise Engineering</h2>
+      </div>
+      <div id="noise-chart" class="noise-wrap"></div>
+    </section>
+
+  </section>
+
+  <aside class="col-side">
+
+    <section class="panel" id="panel-approvals" aria-label="Approval queue">
+      <div class="panel-head">
+        <h2>Approval Queue</h2>
+        <span id="approval-count" class="count-chip" hidden></span>
+      </div>
+      <div id="approval-cards" class="approval-list"></div>
+    </section>
+
+    <section class="panel" id="panel-flight" aria-label="Flight recorder">
+      <div class="panel-head">
+        <h2>Flight Recorder</h2>
+        <span id="flight-live" class="live-dot" hidden>&#9679; live</span>
+      </div>
+      <table class="flight-table">
+        <thead>
+          <tr><th class="ft-seq">#</th><th class="ft-time">time</th><th>agent</th><th>action</th><th>detail</th></tr>
+        </thead>
+        <tbody id="flight-body"></tbody>
+      </table>
+    </section>
+
+  </aside>
+
+</main>
+
+<footer class="footer">
+  <div id="run-summary" class="run-summary"></div>
+  <div class="footer-brand">forged by aegis</div>
+</footer>
+
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

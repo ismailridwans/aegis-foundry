@@ -5,6 +5,7 @@ Subcommands:
 - ``run``      execute the nine-agent detection pipeline (mock or live).
 - ``audit``    pretty-print a run's agent flight recorder as a table.
 - ``heatmap``  render a terminal ATT&CK coverage mini-matrix for a run.
+- ``ui``       serve the web console (runs browser + browser approvals).
 
 The console-script entry point (``aegis-foundry = aegis_foundry.cli:main``)
 returns an exit code: 0 when the pipeline reached DONE, 1 otherwise.
@@ -121,6 +122,32 @@ def cmd_run(args: argparse.Namespace) -> int:
         cfg.fixtures_dir = Path(args.fixtures_dir)
     state = run_pipeline(cfg)
     return 0 if state.stage is PipelineStage.DONE else 1
+
+
+# --------------------------------------------------------------------------
+# Subcommand: ui (web console)
+# --------------------------------------------------------------------------
+
+
+def cmd_ui(args: argparse.Namespace) -> int:
+    """Serve the web console; Ctrl+C shuts it down cleanly."""
+    from aegis_foundry.web.approvals import set_broker
+    from aegis_foundry.web.server import ConsoleServer
+
+    cfg = AppConfig.from_env()
+    if args.mode:
+        cfg.mode = args.mode
+    if args.fp_budget is not None:
+        cfg.fp_budget_weekly = float(args.fp_budget)
+    server = ConsoleServer(cfg, host=args.host, port=args.port)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nshutting down Aegis Foundry console")
+    finally:
+        set_broker(None)
+        server.shutdown()
+    return 0
 
 
 # --------------------------------------------------------------------------
@@ -299,6 +326,18 @@ def build_parser() -> argparse.ArgumentParser:
     heat_p.add_argument("--run-id", default=None,
                         help="run directory name (default: latest run)")
     heat_p.set_defaults(func=cmd_heatmap)
+
+    ui_p = sub.add_parser(
+        "ui", help="serve the web console (runs browser + browser approvals)")
+    ui_p.add_argument("--port", type=int, default=8787,
+                      help="TCP port to listen on (default: 8787)")
+    ui_p.add_argument("--host", default="127.0.0.1",
+                      help="interface to bind (default: 127.0.0.1)")
+    ui_p.add_argument("--mode", choices=("mock", "live"), default=None,
+                      help="override AEGIS_MODE (mock = offline fixtures)")
+    ui_p.add_argument("--fp-budget", type=float, default=None,
+                      help="default max expected alerts/week per rule (25)")
+    ui_p.set_defaults(func=cmd_ui)
     return parser
 
 
