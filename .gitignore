@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+
+# Runtime artifacts
+runs/
+*.log
+evidence_packs/
+.aegis_state/
+
+# Secrets - never commit credentials
+.env
+*.token
+local_settings.py
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Splunk packaging artifacts
+*.spl
+*.tar.gz
+appinspect_report*

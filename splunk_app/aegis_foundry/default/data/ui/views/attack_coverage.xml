@@ -1,0 +1,67 @@
+<dashboard version="1.1">
+  <label>ATT&amp;CK Coverage Forge</label>
+  <description>MITRE ATT&amp;CK coverage posture maintained by the Aegis agent swarm. Rows are derived from the audit flight recorder: GAP = identified but undetected, COVERED = existing detection found, FORGED BY AEGIS = detection authored, governed and deployed by the agents.</description>
+  <row>
+    <panel>
+      <title>Technique coverage</title>
+      <table>
+        <search>
+          <query>index=aegis_audit sourcetype="aegis:flight_recorder" (action="gap_identified" OR action="technique_covered" OR action="rule_deployed")
+| eval technique_id=coalesce('detail.technique_id', 'detail.technique')
+| stats values(action) as actions latest(detail.technique_name) as technique_name latest(detail.tactic) as tactic by technique_id
+| eval status=case(isnotnull(mvfind(actions, "rule_deployed")), "FORGED BY AEGIS", isnotnull(mvfind(actions, "technique_covered")), "COVERED", true(), "GAP")
+| table technique_id, technique_name, tactic, status
+| sort technique_id</query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">none</option>
+        <option name="wrap">true</option>
+        <format type="color" field="status">
+          <colorPalette type="map">{"GAP":#DC4E41,"COVERED":#53A051,"FORGED BY AEGIS":#00CDAF}</colorPalette>
+        </format>
+      </table>
+    </panel>
+    <panel>
+      <title>Detections forged this week</title>
+      <single>
+        <search>
+          <query>index=aegis_audit sourcetype="aegis:flight_recorder" action="rule_deployed"
+| eval forged_name=coalesce('detail.saved_search_name', 'detail.rule_id')
+| stats dc(forged_name) as forged</query>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0x00CDAF"]</option>
+        <option name="rangeValues">[0]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">saved searches deployed by the agent swarm</option>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Weekly alert volume per rule: forecast vs observed</title>
+      <chart>
+        <search>
+          <query>index=aegis_audit sourcetype="aegis:flight_recorder" (action="noise_forecast" OR action="verification")
+| eval rule=coalesce('detail.rule_id', "unknown")
+| eval series=if(action="noise_forecast", "forecast_weekly_alerts", "observed_weekly_alerts")
+| eval value=if(action="noise_forecast", 'detail.predicted_weekly_alerts', 'detail.observed_weekly_alerts')
+| chart latest(value) over rule by series</query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleY.text">alerts / week</option>
+        <option name="charting.axisTitleX.text">rule</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.seriesColors">[0x00CDAF, 0xF8BE34]</option>
+      </chart>
+    </panel>
+  </row>
+</dashboard>

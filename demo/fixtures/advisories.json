@@ -1,0 +1,19 @@
+[
+  {
+    "intel_id": "intel-cisa-aa26-117a",
+    "title": "CISA AA26-117A: Encoded-PowerShell Credential Theft Campaign",
+    "description": "CISA and partners observed an active campaign in which adversaries gain initial access via phishing, then launch encoded PowerShell (powershell.exe -EncodedCommand) to evade command-line logging while staging credential theft. The encoded payloads download a loader that opens a handle to LSASS and dumps LSASS process memory to harvest credentials for lateral movement. Hunt for process-creation events (EventCode 4688) where powershell.exe carries the -EncodedCommand flag from non-service accounts, and for suspicious access to lsass.exe.",
+    "source": "advisory:CISA-AA26-117A",
+    "mitre_techniques": [
+      "T1059.001",
+      "T1003.001"
+    ],
+    "severity": "critical",
+    "indicators": [
+      "powershell.exe -NoProfile -EncodedCommand JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdw",
+      "powershell.exe -NoProfile -EncodedCommand SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQ",
+      "powershell.exe -EncodedCommand JABzAD0ATgBlAHcALQBPAGIAagBlAGMAdAAgAEkATw"
+    ],
+    "received_at": "2026-06-14T08:45:00+00:00"
+  }
+]

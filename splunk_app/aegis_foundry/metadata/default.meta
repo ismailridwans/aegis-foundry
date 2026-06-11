@@ -1,0 +1,11 @@
+# Aegis Foundry - default object permissions.
+# App objects are private to the app (export = none); the two dashboards are
+# exported so they render for all roles that can read the app.
+
+[]
+access = read : [ * ], write : [ admin ]
+export = none
+
+[views]
+access = read : [ * ], write : [ admin ]
+export = system

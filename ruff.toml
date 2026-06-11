@@ -1,0 +1,10 @@
+# Ruff configuration for Aegis Foundry (stdlib + requests, py310+).
+line-length = 120
+target-version = "py310"
+
+[lint]
+# E: pycodestyle errors, F: pyflakes, I: import sorting.
+select = ["E", "F", "I"]
+
+[lint.isort]
+known-first-party = ["aegis_foundry"]

@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aegis-foundry"
+version = "0.1.0"
+description = "Aegis Foundry - Autonomous Detection Engineering for Splunk. A multi-agent agentic-ops platform that finds MITRE ATT&CK coverage gaps, authors SPL detections, backtests them via the Splunk MCP Server, forecasts alert noise with the Cisco Deep Time Series Model, and deploys them under human governance."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Aegis Foundry Team" }]
+keywords = ["splunk", "agentic-ops", "detection-engineering", "mcp", "security", "aiops"]
+dependencies = [
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+aegis-foundry = "aegis_foundry.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["aegis_foundry*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

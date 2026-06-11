@@ -1,0 +1,34 @@
+[
+  {
+    "name": "ES - LSASS Memory Access via Suspicious Process",
+    "search": "index=botsv3 sourcetype=\"XmlWinEventLog:Microsoft-Windows-Sysmon/Operational\" EventCode=10 TargetImage=\"*\\\\lsass.exe\" GrantedAccess IN (\"0x1010\", \"0x1410\", \"0x1438\") NOT SourceImage IN (\"*\\\\MsMpEng.exe\", \"*\\\\csrss.exe\") | stats count earliest(_time) AS first_seen latest(_time) AS last_seen BY host, SourceImage, TargetImage, GrantedAccess",
+    "description": "Detects processes opening handles to lsass.exe with memory-read access masks consistent with credential dumping (Sysmon EventCode 10).",
+    "mitre_techniques": [
+      "T1003.001"
+    ]
+  },
+  {
+    "name": "ES - Excessive Failed Logons From Single Source (Password Spray)",
+    "search": "index=botsv3 sourcetype=\"WinEventLog:Security\" EventCode=4625 Logon_Type IN (3, 10) | bin _time span=10m | stats dc(user) AS distinct_users count AS failures BY src_ip, _time | where distinct_users >= 10 AND failures >= 20",
+    "description": "Flags a single source IP generating failed logons across many accounts in a short window, indicating password spraying.",
+    "mitre_techniques": [
+      "T1110"
+    ]
+  },
+  {
+    "name": "ES - Periodic Outbound Beaconing to Rare Destination",
+    "search": "index=botsv3 sourcetype=stream:tcp dest_port=443 | bin _time span=1m | stats count BY src_ip, dest_ip, _time | streamstats window=60 stdev(count) AS jitter avg(count) AS cadence BY src_ip, dest_ip | where cadence >= 1 AND jitter < 0.5 | stats sum(count) AS beacons dc(_time) AS intervals BY src_ip, dest_ip | where intervals >= 30",
+    "description": "Identifies hosts emitting low-jitter, fixed-cadence HTTPS connections to a rare external destination, a hallmark of C2 beaconing over web protocols.",
+    "mitre_techniques": [
+      "T1071.001"
+    ]
+  },
+  {
+    "name": "ES - New Local Administrator Account Created",
+    "search": "index=botsv3 sourcetype=\"WinEventLog:Security\" (EventCode=4720 OR (EventCode=4732 Group_Name=\"Administrators\")) | transaction host, Target_Account_Name maxspan=1h | search EventCode=4720 EventCode=4732 | table _time, host, Target_Account_Name, Subject_Account_Name",
+    "description": "Detects creation of a local account that is added to the local Administrators group shortly afterwards on the same host.",
+    "mitre_techniques": [
+      "T1136.001"
+    ]
+  }
+]

@@ -1,0 +1,108 @@
+# Aegis Foundry - container topology for the Splunk Agentic Ops Hackathon.
+#
+# Two usage profiles (documented here, selected via `--profile` / service names):
+#
+#   1. DEFAULT profile (infrastructure only) - judges / developers who want a
+#      real Splunk + a local open-weight LLM, while running the agents on the
+#      host (e.g. `aegis-foundry run --mode live` or `make demo` for mock mode):
+#
+#          docker compose up -d splunk ollama
+#
+#      After ollama is up, pull the general-reasoning model used by the
+#      Detection Author / Tuning Optimizer agents:
+#
+#          docker exec -it ollama ollama pull gpt-oss:20b
+#
+#      Alternative security-reasoning model: Foundation-Sec-1.1-8B-Instruct
+#      (Hugging Face id: fdtn-ai/Foundation-Sec-1.1-8B-Instruct) can be served
+#      via vLLM instead of ollama - any OpenAI-compatible endpoint works:
+#
+#          vllm serve fdtn-ai/Foundation-Sec-1.1-8B-Instruct --port 11434
+#
+#   2. "live" profile (full stack) - additionally builds and runs the Aegis
+#      Foundry pipeline container wired to the in-compose Splunk and ollama:
+#
+#          docker compose --profile live up --build
+#
+# No profile is required for mock mode: `docker build -t aegis . && docker run aegis`
+# runs the fully offline, deterministic demo with zero credentials.
+
+name: aegis-foundry
+
+services:
+  # ---------------------------------------------------------------- splunk --
+  # Splunk Enterprise 9.x with the packaged aegis_foundry app mounted
+  # read-only so deployed saved searches land in a governed namespace.
+  splunk:
+    image: splunk/splunk:9.4
+    container_name: splunk
+    hostname: splunk
+    environment:
+      SPLUNK_START_ARGS: --accept-license
+      # Override via `SPLUNK_PASSWORD=... docker compose up` or a .env file.
+      SPLUNK_PASSWORD: ${SPLUNK_PASSWORD:-ChangeMe_aegis1}
+    ports:
+      - "8000:8000"   # Splunk Web UI
+      - "8089:8089"   # management REST API (deploy plane + MCP server)
+      - "8088:8088"   # HTTP Event Collector
+    volumes:
+      - ./splunk_app/aegis_foundry:/opt/splunk/etc/apps/aegis_foundry:ro
+    healthcheck:
+      # Probe the management port; auth-protected endpoint proves splunkd is
+      # fully up (the container env carries SPLUNK_PASSWORD, $$ defers
+      # expansion to the in-container shell).
+      test:
+        [
+          "CMD-SHELL",
+          "curl --insecure --fail --silent --user admin:$${SPLUNK_PASSWORD} https://localhost:8089/services/server/info > /dev/null",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 12
+      start_period: 120s
+
+  # ---------------------------------------------------------------- ollama --
+  # Local OpenAI-compatible model server for the LLM-backed agents.
+  # After first start, pull the model once (persisted in the named volume):
+  #     docker exec -it ollama ollama pull gpt-oss:20b
+  # Foundation-Sec-1.1-8B-Instruct (HF: fdtn-ai/Foundation-Sec-1.1-8B-Instruct)
+  # is the recommended security-reasoning alternative; serve it with vLLM and
+  # point AEGIS_LLM_BASE_URL at that endpoint instead.
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+
+  # ----------------------------------------------------------------- aegis --
+  # The nine-agent pipeline itself, in live mode against the services above.
+  # Only started under the "live" profile: docker compose --profile live up
+  aegis:
+    profiles: ["live"]
+    build:
+      context: .
+    container_name: aegis
+    command: ["run", "--mode", "live"]
+    environment:
+      AEGIS_MODE: live
+      # Splunk MCP Server (search plane, read-only) + REST deploy plane.
+      SPLUNK_MCP_URL: ${SPLUNK_MCP_URL:-https://splunk:8089/services/mcp}
+      SPLUNK_MCP_TOKEN: ${SPLUNK_MCP_TOKEN:-}
+      SPLUNK_REST_URL: https://splunk:8089
+      SPLUNK_REST_TOKEN: ${SPLUNK_REST_TOKEN:-}
+      SPLUNK_VERIFY_TLS: "false"   # in-compose Splunk uses a self-signed cert
+      # Open-weight LLM served by the ollama service.
+      AEGIS_LLM_BASE_URL: http://ollama:11434/v1
+      AEGIS_LLM_API_KEY: ollama
+      AEGIS_GENERAL_MODEL: gpt-oss:20b
+      AEGIS_FP_BUDGET_WEEKLY: ${AEGIS_FP_BUDGET_WEEKLY:-25}
+    depends_on:
+      splunk:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+
+volumes:
+  ollama_models:

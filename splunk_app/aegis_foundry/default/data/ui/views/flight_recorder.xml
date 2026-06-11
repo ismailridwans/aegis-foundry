@@ -1,0 +1,59 @@
+<dashboard version="1.1">
+  <label>Agent Flight Recorder</label>
+  <description>Immutable audit trail of every action taken by the nine Aegis Foundry agents. Each event is one JSON line: seq, ts, agent, action and a structured detail payload.</description>
+  <row>
+    <panel>
+      <title>Agent activity timeline</title>
+      <chart>
+        <search>
+          <query>index=aegis_audit sourcetype="aegis:flight_recorder"
+| timechart count by agent</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleY.text">audited actions</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Human approvals pending</title>
+      <single>
+        <search>
+          <query>index=aegis_audit sourcetype="aegis:flight_recorder" (action="approval_requested" OR action="decision_recorded")
+| stats count(eval(action="approval_requested")) as requested count(eval(action="decision_recorded")) as decided
+| eval pending=max(requested - decided, 0)
+| fields pending</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[0,2]</option>
+        <option name="useColors">1</option>
+        <option name="underLabel">governance decisions awaiting a human</option>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Flight recorder events</title>
+      <table>
+        <search>
+          <query>index=aegis_audit sourcetype="aegis:flight_recorder"
+| spath output=detail path=detail
+| table seq, ts, agent, action, detail
+| sort 0 - seq</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">none</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>

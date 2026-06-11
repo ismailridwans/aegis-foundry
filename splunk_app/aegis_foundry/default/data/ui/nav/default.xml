@@ -1,0 +1,5 @@
+<nav search_view="search" color="#00CDAF">
+  <view name="attack_coverage" default="true" />
+  <view name="flight_recorder" />
+  <view name="search" />
+</nav>
