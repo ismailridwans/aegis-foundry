@@ -30,3 +30,6 @@ Thumbs.db
 *.spl
 *.tar.gz
 appinspect_report*
+
+# Local assistant/session config
+.claude/
