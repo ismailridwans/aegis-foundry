@@ -482,7 +482,9 @@ class _ConsoleRequestHandler(BaseHTTPRequestHandler):
         path = self.path.split("?", 1)[0]
         try:
             if path == "/":
-                self._serve_index()
+                self._serve_page("index.html")
+            elif path in ("/console", "/console/"):
+                self._serve_page("console.html")
             elif path.startswith("/static/"):
                 self._serve_static(path[len("/static/"):])
             elif path == "/api/runs":
@@ -562,10 +564,12 @@ class _ConsoleRequestHandler(BaseHTTPRequestHandler):
 
     # -- static assets -------------------------------------------------------------
 
-    def _serve_index(self) -> None:
-        index = _STATIC_DIR / "index.html"
-        if index.is_file():
-            self._send_bytes(index.read_bytes(), _CONTENT_TYPES[".html"])
+    def _serve_page(self, filename: str) -> None:
+        """Serve a top-level HTML page: ``/`` -> the landing experience,
+        ``/console`` -> the operational dashboard."""
+        page = _STATIC_DIR / filename
+        if page.is_file():
+            self._send_bytes(page.read_bytes(), _CONTENT_TYPES[".html"])
         else:
             self._send_bytes(_FALLBACK_INDEX.encode("utf-8"), _CONTENT_TYPES[".html"])
 

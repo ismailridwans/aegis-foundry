@@ -1,94 +1,326 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Aegis Foundry — Detection Engineering Console</title>
-<link rel="icon" href="data:,">
-<link rel="stylesheet" href="/static/style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Aegis Foundry - the SOC that maintains itself. A nine-agent detection-engineering pipeline for Splunk: gap detection, authoring, backtest, noise forecast, tuning, governed deploy, post-deploy verification." />
+  <meta name="theme-color" content="#04060c" />
+  <title>Aegis Foundry &mdash; The SOC that maintains itself</title>
+  <link rel="stylesheet" href="/static/design-tokens.css?v=3" />
+  <link rel="stylesheet" href="/static/landing.css?v=3" />
+  <script src="/static/landing.js?v=3" defer></script>
 </head>
 <body>
+  <a class="skip" href="#main">Skip to content</a>
 
-<header class="topbar">
-  <div class="brand">
-    <span class="glyph" aria-hidden="true">&#x2B21;</span>
-    <div class="brand-text">
-      <h1>AEGIS FOUNDRY</h1>
-      <p class="subtitle">Autonomous Detection Engineering for Splunk</p>
+  <!-- Deep-space aurora canvas (decorative, parallaxed) -->
+  <div class="sky" aria-hidden="true">
+    <div class="sky-par" id="sky-par">
+      <div class="orb orb-brand"></div>
+      <div class="orb orb-cyan"></div>
+      <div class="orb orb-violet"></div>
+      <div class="dots"></div>
     </div>
   </div>
-  <div class="topbar-controls">
-    <span id="stage-indicator" class="stage-indicator" hidden></span>
-    <span id="mode-pill" class="pill pill-idle">IDLE</span>
-    <label class="check" for="auto-approve">
-      <input type="checkbox" id="auto-approve"> auto-approve
-    </label>
-    <button type="button" id="start-run" class="btn btn-primary">Start run</button>
-  </div>
-</header>
 
-<main class="layout">
-
-  <section class="col-main">
-
-    <section class="panel" id="panel-pipeline" aria-label="Pipeline">
-      <div class="panel-head">
-        <h2>Pipeline</h2>
-        <span id="pipeline-run" class="panel-tag mono"></span>
+  <!-- (1) Frosted pill nav, appears after 80px of scroll -->
+  <header class="nav-wrap">
+    <nav class="nav glass" id="nav" aria-label="Primary">
+      <a class="nav-brand" href="#top">
+        <svg class="nav-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2.5l8.2 4.75v9.5L12 21.5l-8.2-4.75v-9.5L12 2.5z" />
+          <path d="M12 8l3.4 2v4L12 16l-3.4-2v-4L12 8z" />
+        </svg>
+        <span>AEGIS FOUNDRY</span>
+      </a>
+      <div class="nav-links">
+        <a href="#problem">Problem</a>
+        <a href="#pipeline">Pipeline</a>
+        <a href="#why">Why it wins</a>
+        <a href="#run">Live run</a>
       </div>
-      <ol id="stepper" class="stepper"></ol>
+      <a class="nav-cta" href="/console">Launch Console</a>
+    </nav>
+  </header>
+
+  <main id="main">
+
+    <!-- (2) HERO -->
+    <section class="hero" id="top" aria-label="Introduction">
+      <div class="hero-inner" data-stagger>
+        <p class="eyebrow-pill glass">SPLUNK AGENTIC OPS &mdash; SECURITY TRACK</p>
+        <h1 class="hero-h1">The SOC that<br /><span class="grad-text shimmer">maintains itself.</span></h1>
+        <p class="hero-sub">Nine governed agents find the coverage gap, forge the detection, price its noise before deploy, and verify it after &mdash; all inside Splunk.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="/console">Launch Console <span class="btn-arr">&rarr;</span></a>
+          <a class="btn btn-ghost glass" href="#pipeline">Watch the pipeline</a>
+        </div>
+        <div class="hero-strip-wrap">
+          <div class="hero-strip glass bob" role="list" aria-label="Headline results">
+            <div class="cell" role="listitem">
+              <span class="cell-v">382.3 <span class="arr">&rarr;</span> 2.7</span>
+              <span class="cell-l">alerts / week</span>
+            </div>
+            <div class="cell" role="listitem">
+              <span class="cell-v">17/17</span>
+              <span class="cell-l">true positives retained</span>
+            </div>
+            <div class="cell" role="listitem">
+              <span class="cell-v">1.11</span>
+              <span class="cell-l">drift &mdash; verified in band</span>
+            </div>
+            <div class="cell" role="listitem">
+              <span class="cell-v">9</span>
+              <span class="cell-l">governed agents</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <a class="hero-cue" href="#marquee" aria-label="Scroll to continue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+      </a>
     </section>
 
-    <section class="panel" id="panel-coverage" aria-label="ATT&amp;CK Coverage">
-      <div class="panel-head">
-        <h2>ATT&amp;CK Coverage</h2>
+    <!-- (3) CAPABILITY MARQUEE -->
+    <section class="marquee-sec" id="marquee" aria-label="Built on">
+      <div class="marquee">
+        <div class="marquee-track">
+          <ul class="chips">
+            <li class="chip glass">Splunk MCP Server</li>
+            <li class="chip glass">Cisco Deep Time Series Model</li>
+            <li class="chip glass">Foundation-Sec-1.1-8B</li>
+            <li class="chip glass">gpt-oss-120b</li>
+            <li class="chip glass">Splunk AI Assistant</li>
+            <li class="chip glass">| ai command</li>
+            <li class="chip glass">AppInspect CI</li>
+            <li class="chip glass">BOTS v3 backtests</li>
+          </ul>
+          <ul class="chips" aria-hidden="true">
+            <li class="chip glass">Splunk MCP Server</li>
+            <li class="chip glass">Cisco Deep Time Series Model</li>
+            <li class="chip glass">Foundation-Sec-1.1-8B</li>
+            <li class="chip glass">gpt-oss-120b</li>
+            <li class="chip glass">Splunk AI Assistant</li>
+            <li class="chip glass">| ai command</li>
+            <li class="chip glass">AppInspect CI</li>
+            <li class="chip glass">BOTS v3 backtests</li>
+          </ul>
+        </div>
       </div>
-      <div id="coverage-cards" class="coverage-grid"></div>
     </section>
 
-    <section class="panel" id="panel-noise" aria-label="Noise Engineering">
-      <div class="panel-head">
-        <h2>Noise Engineering</h2>
+    <!-- (4) PROBLEM -->
+    <section class="sec problem" id="problem">
+      <div class="sec-inner prob-grid">
+        <div class="prob-copy reveal" data-stagger>
+          <p class="eyebrow">THE PROBLEM</p>
+          <h2 class="sec-h2">The broken factory.</h2>
+          <p>Enterprises run hundreds of correlation searches. A large fraction are stale, broken by schema drift, or were never tuned to the environment they run in.</p>
+          <p>Covering a new threat technique takes days to weeks &mdash; every rule needs authoring, historical validation, false-positive tuning, and change control. All of it manual.</p>
+          <p class="prob-punch">Alert fatigue is a symptom, not the disease. Every triage copilot mops the floor a little faster. <strong>Nobody fixed the faucet.</strong> Aegis Foundry fixes the faucet.</p>
+        </div>
+        <div class="prob-panel glass reveal" id="metrics">
+          <div class="metric">
+            <div class="metric-num"><span data-count-from="0" data-count-to="382.3" data-decimals="1">0.0</span></div>
+            <p class="metric-label">alerts/week from one untuned rule</p>
+          </div>
+          <div class="metric">
+            <div class="metric-num metric-word">weeks</div>
+            <p class="metric-label">to cover a new technique by hand</p>
+          </div>
+          <div class="metric">
+            <div class="metric-num"><span data-count-from="0" data-count-to="100" data-decimals="0" data-suffix="%">0%</span></div>
+            <p class="metric-label">of that noise was forecastable before deploy</p>
+          </div>
+        </div>
       </div>
-      <div id="noise-chart" class="noise-wrap"></div>
     </section>
 
-  </section>
+    <!-- (5) PIPELINE SCRUB -->
+    <section class="pipe-track" id="pipeline">
+      <div class="pipe-stage" id="pipe-stage">
+        <div class="pipe-head reveal">
+          <p class="eyebrow">THE PIPELINE</p>
+          <h2 class="sec-h2">Watch a detection forge itself.</h2>
+          <p class="pipe-hint">Keep scrolling &mdash; the forge line follows you through all nine agents.</p>
+        </div>
+        <div class="pipe-body">
+          <div class="pipe-board">
+            <div class="pipe-board-inner">
+              <svg class="forge" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+                <defs>
+                  <linearGradient id="forge-grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#ff5722" />
+                    <stop offset="0.5" stop-color="#41d1ff" />
+                    <stop offset="1" stop-color="#8b7bff" />
+                  </linearGradient>
+                </defs>
+                <path class="forge-rail" d="M180 112 L500 112 L820 112 C950 112 950 280 820 280 L500 280 L180 280 C50 280 50 448 180 448 L500 448 L820 448" />
+                <path class="forge-glow" id="forge-glow" d="M180 112 L500 112 L820 112 C950 112 950 280 820 280 L500 280 L180 280 C50 280 50 448 180 448 L500 448 L820 448" />
+                <path class="forge-line" id="forge-line" d="M180 112 L500 112 L820 112 C950 112 950 280 820 280 L500 280 L180 280 C50 280 50 448 180 448 L500 448 L820 448" />
+              </svg>
 
-  <aside class="col-side">
+              <div class="pipe-node glass" style="--x:18%;--y:20%">
+                <span class="pn-num">01</span>
+                <h3 class="pn-name">intel-scout</h3>
+                <p class="pn-role">Ingests advisories; extracts ATT&amp;CK techniques</p>
+              </div>
+              <div class="pipe-node glass" style="--x:50%;--y:20%">
+                <span class="pn-num">02</span>
+                <h3 class="pn-name">coverage-cartographer</h3>
+                <p class="pn-role">Maps live rules; finds T1059.001 uncovered</p>
+              </div>
+              <div class="pipe-node glass" style="--x:82%;--y:20%">
+                <span class="pn-num">03</span>
+                <h3 class="pn-name">detection-author</h3>
+                <p class="pn-role">Drafts SPL; self-corrects against validation</p>
+              </div>
+              <div class="pipe-node glass" style="--x:82%;--y:50%">
+                <span class="pn-num">04</span>
+                <h3 class="pn-name">backtest-engineer</h3>
+                <p class="pn-role">Replays 90 days of labeled history</p>
+              </div>
+              <div class="pipe-node glass" style="--x:50%;--y:50%">
+                <span class="pn-num">05</span>
+                <h3 class="pn-name">noise-forecaster</h3>
+                <p class="pn-role">Prices future alert volume with CDTSM</p>
+              </div>
+              <div class="pipe-node glass" style="--x:18%;--y:50%">
+                <span class="pn-num">06</span>
+                <h3 class="pn-name">tuning-optimizer</h3>
+                <p class="pn-role">Tightens the rule until noise fits budget</p>
+              </div>
+              <div class="pipe-node glass" style="--x:18%;--y:80%">
+                <span class="pn-num">07</span>
+                <h3 class="pn-name">governor</h3>
+                <p class="pn-role">7 policy checks; evidence pack; human gate</p>
+              </div>
+              <div class="pipe-node glass" style="--x:50%;--y:80%">
+                <span class="pn-num">08</span>
+                <h3 class="pn-name">deployer</h3>
+                <p class="pn-role">Ships a native saved search with rollback</p>
+              </div>
+              <div class="pipe-node glass" style="--x:82%;--y:80%">
+                <span class="pn-num">09</span>
+                <h3 class="pn-name">verifier</h3>
+                <p class="pn-role">Watches week one; confirms drift in band</p>
+              </div>
+            </div>
+          </div>
 
-    <section class="panel" id="panel-approvals" aria-label="Approval queue">
-      <div class="panel-head">
-        <h2>Approval Queue</h2>
-        <span id="approval-count" class="count-chip" hidden></span>
+          <aside class="pipe-cap glass">
+            <div class="cap on">
+              <h3>Found the gap: T1059.001</h3>
+              <p>CISA AA26-117A lands. Four existing rules cover everything except PowerShell execution. Risk score 8.5.</p>
+            </div>
+            <div class="cap">
+              <h3>Backtested: 5,818 hits in 90 days</h3>
+              <p>Draft v1 replayed over labeled history &mdash; recall 100%, precision 0.3%. Honest, measured, far too loud.</p>
+            </div>
+            <div class="cap">
+              <h3>Forecast: 382/wk &mdash; over budget &rarr; tuned to 2.7/wk</h3>
+              <p>The forecast gate rejects the noise before deploy. One tuning pass keeps all 17 true positives.</p>
+            </div>
+            <div class="cap">
+              <h3>Human approved &rarr; deployed &rarr; verified, drift 1.11</h3>
+              <p>7/7 policy checks pass. Week one observes 3.0/wk vs 2.7 forecast &mdash; inside the 90% band.</p>
+            </div>
+          </aside>
+        </div>
       </div>
-      <div id="approval-cards" class="approval-list"></div>
     </section>
 
-    <section class="panel" id="panel-flight" aria-label="Flight recorder">
-      <div class="panel-head">
-        <h2>Flight Recorder</h2>
-        <span id="flight-live" class="live-dot" hidden>&#9679; live</span>
+    <!-- (6) USP GRID -->
+    <section class="sec why" id="why">
+      <div class="sec-inner">
+        <div class="why-head reveal" data-stagger>
+          <p class="eyebrow">WHY IT WINS</p>
+          <h2 class="sec-h2">Six unfair advantages.</h2>
+        </div>
+        <div class="usps" id="usps" data-stagger>
+          <article class="usp glass">
+            <div class="usp-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16a8 8 0 0 1 16 0" /><path d="M12 16l3.6-4.6" /><circle cx="12" cy="16" r="1.2" /><path d="M3 20h18" /></svg>
+            </div>
+            <h3>Forecast-gated deployment</h3>
+            <p>The Cisco Deep Time Series Model prices a rule's alert noise <em>before</em> it reaches production. Over budget means it does not ship.</p>
+          </article>
+          <article class="usp glass">
+            <div class="usp-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.8 12a8.2 8.2 0 1 0 2.4-5.8" /><path d="M3.8 2.8v3.4h3.4" /><path d="M9 12.4l2.2 2.2 4-4.4" /></svg>
+            </div>
+            <h3>Backtest-verified AI</h3>
+            <p>Every generated detection is replayed over 90 days of labeled history. Recall and precision are measured on evidence, not vibes.</p>
+          </article>
+          <article class="usp glass">
+            <div class="usp-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z" /><path d="M14 3v4h4" /><path d="M9 12h6" /><path d="M9 16h4" /></svg>
+            </div>
+            <h3>Evidence-pack governance</h3>
+            <p>SPL diff, backtest table, forecast verdict and 7 policy checks &mdash; bundled into one pack a human approves, shadows, or rejects.</p>
+          </article>
+          <article class="usp glass">
+            <div class="usp-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6.5" width="18" height="12" rx="2.5" /><path d="M6.5 12.5h2l1.4-2.8 2 5.6 1.4-2.8h3.2" /></svg>
+            </div>
+            <h3>Agent flight recorder</h3>
+            <p>Every agent action lands in an immutable, Splunk-ingestible audit log. The swarm is observable in the same pane of glass it manages.</p>
+          </article>
+          <article class="usp glass">
+            <div class="usp-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 4h4v4H4z" /><path d="M10 4h4v4h-4z" /><path d="M16 4h4v4h-4z" /><path d="M4 10h4v4H4z" /><path d="M16 10h4v4h-4z" /><path d="M4 16h4v4H4z" /><path d="M10 16h4v4h-4z" /><path d="M16 16h4v4h-4z" /><rect x="10.6" y="10.6" width="2.8" height="2.8" fill="currentColor" stroke="none" /></svg>
+            </div>
+            <h3>ATT&amp;CK forge</h3>
+            <p>Coverage gaps close themselves: the heatmap cell flips from GAP to <span class="forged">FORGED BY AEGIS</span> the moment the rule deploys.</p>
+          </article>
+          <article class="usp glass">
+            <div class="usp-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17.5a4.3 4.3 0 0 1-.6-8.55A5.5 5.5 0 0 1 17 7.9a4.3 4.3 0 0 1-.4 8.6" /><path d="M12 13v8" /><path d="M9 21h6" /></svg>
+            </div>
+            <h3>Runs anywhere</h3>
+            <p>Splunk Cloud hosted models &mdash; or fully air-gapped open weights. The EWMA fallback labels itself honestly in every artifact.</p>
+          </article>
+        </div>
       </div>
-      <table class="flight-table">
-        <thead>
-          <tr><th class="ft-seq">#</th><th class="ft-time">time</th><th>agent</th><th>action</th><th>detail</th></tr>
-        </thead>
-        <tbody id="flight-body"></tbody>
-      </table>
     </section>
 
-  </aside>
+    <!-- (7) LIVE TERMINAL -->
+    <section class="sec run" id="run">
+      <div class="sec-inner">
+        <div class="run-head reveal" data-stagger>
+          <p class="eyebrow">LIVE RUN</p>
+          <h2 class="sec-h2">One run, end to end.</h2>
+          <p class="run-sub">A real transcript from <code>run-eb91c348df</code> &mdash; the same pipeline you can launch from the console.</p>
+        </div>
+        <div class="term glass reveal" id="terminal">
+          <div class="term-bar">
+            <span class="dot dot-r" aria-hidden="true"></span>
+            <span class="dot dot-y" aria-hidden="true"></span>
+            <span class="dot dot-g" aria-hidden="true"></span>
+            <span class="term-title">aegis-foundry run</span>
+          </div>
+          <div class="term-body" id="term-body" aria-label="Pipeline run transcript">
+            <noscript><span class="t-dim">JavaScript is off &mdash; run `aegis-foundry ui` and open /console for the live experience.</span></noscript>
+          </div>
+        </div>
+      </div>
+    </section>
 
-</main>
+    <!-- (8) FINALE -->
+    <section class="sec finale" id="launch">
+      <div class="sec-inner">
+        <div class="monolith glass reveal" data-stagger>
+          <h2 class="finale-h2">Stop triaging.<br /><span class="grad-text shimmer">Start forging.</span></h2>
+          <p class="finale-sub">Launch the console, start a run, and make the governance call yourself.</p>
+          <a class="btn btn-primary btn-big" href="/console">Launch Console <span class="btn-arr">&rarr;</span></a>
+          <p class="finale-meta">9 agents &middot; 7 policy checks &middot; 90-day backtest &middot; 25 tests</p>
+        </div>
+      </div>
+    </section>
+  </main>
 
-<footer class="footer">
-  <div id="run-summary" class="run-summary"></div>
-  <div class="footer-brand">forged by aegis</div>
-</footer>
-
-<div id="toasts" class="toasts" aria-live="polite"></div>
-
-<script src="/static/app.js"></script>
+  <footer class="foot">
+    <p>Apache-2.0 &mdash; built on Splunk MCP Server, Hosted Models, and AppInspect &middot; <a href="/console">console</a> &middot; <a href="/">aegis-foundry</a></p>
+  </footer>
 </body>
 </html>

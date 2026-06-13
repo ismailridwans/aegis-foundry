@@ -1,0 +1,141 @@
+/* ============================================================================
+   AEGIS FOUNDRY — DESIGN SYSTEM (liquid glass)
+   Shared by the landing experience (/) and the console (/console).
+   All assets are local: no CDN, no network fonts — judges may be offline.
+   ========================================================================== */
+
+/* ---- Typography (OFL-licensed, bundled) ---------------------------------- */
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("/static/fonts/space-grotesk-latin-500-normal.woff2") format("woff2");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("/static/fonts/space-grotesk-latin-700-normal.woff2") format("woff2");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/static/fonts/inter-latin-400-normal.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/static/fonts/inter-latin-500-normal.woff2") format("woff2");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/static/fonts/inter-latin-600-normal.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/static/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/static/fonts/jetbrains-mono-latin-600-normal.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+:root {
+  /* ---- Type scale -------------------------------------------------------- */
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  /* ---- Deep-space canvas -------------------------------------------------- */
+  --bg-void: #04060c;
+  --bg-deep: #070b14;
+  --bg-raised: #0b1120;
+
+  /* ---- Ink ---------------------------------------------------------------- */
+  --ink-bright: #f2f6fc;
+  --ink: #d9e1ec;
+  --ink-soft: #9aa7ba;
+  --ink-faint: #5d6b80;
+
+  /* ---- Brand spectrum (Splunk-forward) ------------------------------------ */
+  --brand: #ff5722;            /* molten orange — primary accent  */
+  --brand-hot: #ff7a45;
+  --brand-deep: #d63d0f;
+  --cyan: #41d1ff;             /* forged-by-aegis highlight       */
+  --violet: #8b7bff;           /* forecast / intelligence         */
+  --emerald: #3ddc97;          /* verified / within budget        */
+  --rose: #ff5d7d;             /* gap / rejected                  */
+  --gold: #ffc24b;             /* governance / pending            */
+
+  /* ---- Liquid glass ------------------------------------------------------- */
+  --glass-bg: rgba(255, 255, 255, 0.045);
+  --glass-bg-strong: rgba(255, 255, 255, 0.075);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --glass-border-bright: rgba(255, 255, 255, 0.18);
+  --glass-highlight: rgba(255, 255, 255, 0.28);
+  --glass-blur: 22px;
+  --glass-saturate: 165%;
+  --glass-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 24px 48px -16px rgba(0, 0, 0, 0.55),
+    0 4px 16px -4px rgba(0, 0, 0, 0.45);
+
+  /* ---- Aurora glows (decorative backgrounds) ------------------------------ */
+  --aurora-brand: rgba(255, 87, 34, 0.16);
+  --aurora-cyan: rgba(65, 209, 255, 0.11);
+  --aurora-violet: rgba(139, 123, 255, 0.13);
+
+  /* ---- Radii & spacing ----------------------------------------------------- */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-pill: 999px;
+
+  /* ---- Motion -------------------------------------------------------------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.44, 1);
+  --t-fast: 180ms;
+  --t-med: 360ms;
+  --t-slow: 700ms;
+}
+
+/* ---- Canonical glass surface --------------------------------------------- */
+.glass {
+  position: relative;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow);
+}
+.glass::before {
+  /* top sheen — the "liquid" light catch */
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent 4%, var(--glass-highlight) 50%, transparent 96%);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* ---- Gradient text -------------------------------------------------------- */
+.grad-text {
+  background: linear-gradient(96deg, var(--ink-bright) 12%, var(--brand-hot) 46%, var(--cyan) 88%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---- Motion safety --------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aegis Foundry — Detection Engineering Console</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/static/design-tokens.css">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- Deep-space canvas: aurora orbs + masked dot grid (decorative only) -->
+<div class="canvas" aria-hidden="true">
+  <div class="orb orb-a"></div>
+  <div class="orb orb-b"></div>
+  <div class="dotgrid"></div>
+</div>
+
+<!-- Shared SVG gradient defs for the noise chart bars -->
+<svg class="svg-defs" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="grad-bar-v1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff7a45"/>
+      <stop offset="1" stop-color="#d63d0f"/>
+    </linearGradient>
+    <linearGradient id="grad-bar-final" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#41d1ff"/>
+      <stop offset="1" stop-color="#1b86b8"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<header class="topbar glass">
+  <a class="brand" href="/" title="Aegis Foundry — back to the story">
+    <span class="glyph" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+        <path d="M12 2.6 20.1 7.3v9.4L12 21.4 3.9 16.7V7.3z"/>
+        <path d="M12 7.4l4 2.3v4.6l-4 2.3-4-2.3V9.7z" opacity="0.55"/>
+      </svg>
+    </span>
+    <span class="brand-text">
+      <h1 class="wordmark">AEGIS FOUNDRY</h1>
+      <span class="subtitle">Autonomous Detection Engineering for Splunk</span>
+    </span>
+  </a>
+  <div class="topbar-center">
+    <span id="stage-indicator" class="stage-indicator mono" hidden></span>
+  </div>
+  <div class="topbar-controls">
+    <span id="mode-pill" class="pill pill-idle">IDLE</span>
+    <label class="switch" for="auto-approve" title="Skip the human approval gate">
+      <input type="checkbox" id="auto-approve">
+      <span class="switch-track" aria-hidden="true"></span>
+      <span class="switch-label">auto-approve</span>
+    </label>
+    <button type="button" id="start-run" class="btn btn-primary btn-start">
+      <span class="spin" aria-hidden="true"></span><span class="btn-label">Start run</span>
+    </button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <section class="col-main">
+
+    <section class="panel glass" id="panel-pipeline" aria-label="Pipeline">
+      <div class="panel-head">
+        <h2>Pipeline</h2>
+        <span id="pipeline-run" class="panel-tag mono"></span>
+      </div>
+      <ol id="stepper" class="stepper"></ol>
+    </section>
+
+    <section class="panel glass" id="panel-coverage" aria-label="ATT&amp;CK Coverage">
+      <div class="panel-head">
+        <h2>ATT&amp;CK Coverage</h2>
+      </div>
+      <div id="coverage-cards" class="coverage-grid"></div>
+    </section>
+
+    <section class="panel glass" id="panel-noise" aria-label="Noise Engineering">
+      <div class="panel-head">
+        <h2>Noise Engineering</h2>
+      </div>
+      <div id="noise-chart" class="noise-wrap"></div>
+    </section>
+
+  </section>
+
+  <aside class="col-side">
+
+    <section class="panel glass" id="panel-approvals" aria-label="Approval queue">
+      <div class="panel-head">
+        <h2>Approval Queue</h2>
+        <span id="approval-count" class="count-chip" hidden></span>
+      </div>
+      <div id="approval-cards" class="approval-list"></div>
+    </section>
+
+    <section class="panel glass panel-flight" id="panel-flight" aria-label="Flight recorder">
+      <div class="panel-head">
+        <h2>Flight Recorder</h2>
+        <span id="flight-live" class="live-dot" hidden>&#9679; live</span>
+      </div>
+      <table class="flight-table">
+        <thead>
+          <tr><th class="ft-seq">#</th><th class="ft-time">time</th><th>agent</th><th>action</th><th>detail</th></tr>
+        </thead>
+        <tbody id="flight-body"></tbody>
+      </table>
+    </section>
+
+  </aside>
+
+</main>
+
+<footer class="footer">
+  <div id="run-summary" class="run-summary"></div>
+  <div class="footer-brand">forged by aegis</div>
+</footer>
+
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
