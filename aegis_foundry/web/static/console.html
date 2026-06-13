@@ -17,108 +17,259 @@
   <div class="dotgrid"></div>
 </div>
 
-<!-- Shared SVG gradient defs for the noise chart bars -->
+<!-- Shared SVG gradient defs for charts -->
 <svg class="svg-defs" aria-hidden="true" focusable="false">
   <defs>
     <linearGradient id="grad-bar-v1" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff7a45"/>
-      <stop offset="1" stop-color="#d63d0f"/>
+      <stop offset="0" stop-color="#ff7a45"/><stop offset="1" stop-color="#d63d0f"/>
     </linearGradient>
     <linearGradient id="grad-bar-final" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#41d1ff"/>
-      <stop offset="1" stop-color="#1b86b8"/>
+      <stop offset="0" stop-color="#41d1ff"/><stop offset="1" stop-color="#1b86b8"/>
+    </linearGradient>
+    <linearGradient id="grad-forecast" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="rgba(139,123,255,0.45)"/><stop offset="1" stop-color="rgba(139,123,255,0)"/>
+    </linearGradient>
+    <linearGradient id="grad-spark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff5722"/><stop offset="1" stop-color="#41d1ff"/>
     </linearGradient>
   </defs>
 </svg>
 
-<header class="topbar glass">
-  <a class="brand" href="/" title="Aegis Foundry — back to the story">
+<!-- ================================================================= SIDEBAR -->
+<aside class="sidenav glass" id="sidenav" aria-label="Console navigation">
+  <a class="side-brand" href="/" title="Aegis Foundry — back to the story">
     <span class="glyph" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
         <path d="M12 2.6 20.1 7.3v9.4L12 21.4 3.9 16.7V7.3z"/>
         <path d="M12 7.4l4 2.3v4.6l-4 2.3-4-2.3V9.7z" opacity="0.55"/>
       </svg>
     </span>
-    <span class="brand-text">
-      <h1 class="wordmark">AEGIS FOUNDRY</h1>
-      <span class="subtitle">Autonomous Detection Engineering for Splunk</span>
+    <span class="side-brand-text">
+      <span class="wordmark">AEGIS FOUNDRY</span>
+      <span class="side-sub">Detection Engineering</span>
     </span>
   </a>
-  <div class="topbar-center">
-    <span id="stage-indicator" class="stage-indicator mono" hidden></span>
-  </div>
-  <div class="topbar-controls">
-    <span id="mode-pill" class="pill pill-idle">IDLE</span>
-    <label class="switch" for="auto-approve" title="Skip the human approval gate">
-      <input type="checkbox" id="auto-approve">
-      <span class="switch-track" aria-hidden="true"></span>
-      <span class="switch-label">auto-approve</span>
-    </label>
-    <button type="button" id="start-run" class="btn btn-primary btn-start">
-      <span class="spin" aria-hidden="true"></span><span class="btn-label">Start run</span>
+
+  <nav class="nav-list" id="nav-list" aria-label="Views">
+    <button type="button" class="nav-item active" data-view="overview">
+      <svg class="ni-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="11" width="7" height="10" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg>
+      <span class="ni-label">Command Center</span>
     </button>
+    <button type="button" class="nav-item" data-view="pipeline">
+      <svg class="ni-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 6h6a4 4 0 0 1 4 4M7 18h6a4 4 0 0 0 4-4"/></svg>
+      <span class="ni-label">Pipeline</span>
+      <span class="ni-badge" id="nav-stage-badge" hidden></span>
+    </button>
+    <button type="button" class="nav-item" data-view="coverage">
+      <svg class="ni-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l7 2.5v5.5c0 4.5-3 7.8-7 9.5-4-1.7-7-5-7-9.5V5.5z"/><path d="M9.2 12l2 2 3.6-4"/></svg>
+      <span class="ni-label">ATT&amp;CK Coverage</span>
+    </button>
+    <button type="button" class="nav-item" data-view="noise">
+      <svg class="ni-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c2-5 4-5 6 0s4 5 6 0 4-5 6 0"/><path d="M3 20h18"/></svg>
+      <span class="ni-label">Noise Lab</span>
+    </button>
+    <button type="button" class="nav-item" data-view="governance">
+      <svg class="ni-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 13l2 2 4-4"/></svg>
+      <span class="ni-label">Governance</span>
+      <span class="ni-badge ni-badge-gold" id="nav-approval-badge" hidden></span>
+    </button>
+    <button type="button" class="nav-item" data-view="deployments">
+      <svg class="ni-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c3 2 4.5 5 4.5 9 0 2-.5 3.8-1.5 5.5h-6C8 14.8 7.5 13 7.5 11c0-4 1.5-7 4.5-9z"/><circle cx="12" cy="10" r="1.6"/><path d="M9 18l-2 3M15 18l2 3"/></svg>
+      <span class="ni-label">Deployments</span>
+    </button>
+    <button type="button" class="nav-item" data-view="flight">
+      <svg class="ni-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 4 13 2-6 1 -2h5"/></svg>
+      <span class="ni-label">Flight Recorder</span>
+      <span class="ni-dot" id="nav-flight-dot" hidden></span>
+    </button>
+    <button type="button" class="nav-item" data-view="models">
+      <svg class="ni-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/></svg>
+      <span class="ni-label">AI Models</span>
+    </button>
+    <button type="button" class="nav-item" data-view="history">
+      <svg class="ni-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <span class="ni-label">Run History</span>
+    </button>
+  </nav>
+
+  <div class="side-foot">
+    <div class="side-foot-row"><span class="sf-k">mode</span><span class="sf-v" id="side-mode">offline mock</span></div>
+    <div class="side-foot-row"><span class="sf-k">build</span><span class="sf-v">aegis-foundry · v0.1</span></div>
+    <div class="side-brandmark">forged by aegis</div>
   </div>
-</header>
+</aside>
 
-<main class="layout">
+<!-- =============================================================== WORKSPACE -->
+<div class="workspace">
 
-  <section class="col-main">
+  <header class="topbar glass">
+    <button type="button" class="burger" id="burger" aria-label="Toggle navigation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
 
-    <section class="panel glass" id="panel-pipeline" aria-label="Pipeline">
-      <div class="panel-head">
-        <h2>Pipeline</h2>
-        <span id="pipeline-run" class="panel-tag mono"></span>
+    <div class="tb-title">
+      <h1 id="view-title">Command Center</h1>
+      <span id="view-caption" class="tb-caption">Live mission overview of the detection-engineering swarm</span>
+    </div>
+
+    <div class="topbar-controls">
+      <label class="run-picker" title="Choose which run to inspect">
+        <span class="rp-label">run</span>
+        <select id="run-select" class="run-select mono"><option value="">live · newest</option></select>
+      </label>
+      <span id="stage-indicator" class="stage-indicator mono" hidden></span>
+      <span id="mode-pill" class="pill pill-idle">IDLE</span>
+      <label class="budget-field" title="False-positive budget the forecast gate enforces">
+        <span class="bf-label">budget</span>
+        <input type="number" id="fp-budget" class="budget-input mono" value="25" min="1" max="999" step="1">
+        <span class="bf-unit">/wk</span>
+      </label>
+      <label class="switch" for="auto-approve" title="Skip the human approval gate">
+        <input type="checkbox" id="auto-approve">
+        <span class="switch-track" aria-hidden="true"></span>
+        <span class="switch-label">auto-approve</span>
+      </label>
+      <button type="button" id="start-run" class="btn btn-primary btn-start">
+        <span class="spin" aria-hidden="true"></span><span class="btn-label">Start run</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="views" id="views">
+
+    <!-- ========================================================= COMMAND CENTER -->
+    <section class="view active" data-view="overview" id="view-overview">
+      <div class="kpi-grid" id="kpi-grid"></div>
+
+      <div class="ov-grid">
+        <section class="panel glass ov-pipeline" aria-label="Pipeline at a glance">
+          <div class="panel-head"><h2>Pipeline</h2><span id="ov-pipeline-run" class="panel-tag mono"></span></div>
+          <ol id="stepper" class="stepper"></ol>
+          <div id="ov-stage-note" class="ov-stage-note"></div>
+        </section>
+
+        <section class="panel glass ov-story" aria-label="Headline story">
+          <div class="panel-head"><h2>What just happened</h2></div>
+          <div id="ov-story" class="ov-story-body"></div>
+        </section>
       </div>
-      <ol id="stepper" class="stepper"></ol>
+
+      <div class="ov-grid-2">
+        <section class="panel glass" aria-label="Noise reduction">
+          <div class="panel-head"><h2>Noise Reduction</h2><span class="panel-tag mono">backtest → forecast</span></div>
+          <div id="noise-chart-mini" class="noise-wrap"></div>
+        </section>
+        <section class="panel glass" aria-label="Live feed">
+          <div class="panel-head"><h2>Live Feed</h2><span id="flight-live" class="live-dot" hidden>&#9679; live</span></div>
+          <ul id="ov-feed" class="ov-feed"></ul>
+        </section>
+      </div>
     </section>
 
-    <section class="panel glass" id="panel-coverage" aria-label="ATT&amp;CK Coverage">
-      <div class="panel-head">
-        <h2>ATT&amp;CK Coverage</h2>
-      </div>
-      <div id="coverage-cards" class="coverage-grid"></div>
+    <!-- =============================================================== PIPELINE -->
+    <section class="view" data-view="pipeline" id="view-pipeline">
+      <section class="panel glass" aria-label="Agent pipeline">
+        <div class="panel-head"><h2>Nine-Agent Lifecycle</h2><span id="pipeline-run" class="panel-tag mono"></span></div>
+        <ol id="stepper-full" class="stepper stepper-wide"></ol>
+      </section>
+      <div class="agent-grid" id="agent-grid"></div>
     </section>
 
-    <section class="panel glass" id="panel-noise" aria-label="Noise Engineering">
-      <div class="panel-head">
-        <h2>Noise Engineering</h2>
+    <!-- =============================================================== COVERAGE -->
+    <section class="view" data-view="coverage" id="view-coverage">
+      <div class="cov-layout">
+        <section class="panel glass" aria-label="ATT&amp;CK Coverage">
+          <div class="panel-head"><h2>ATT&amp;CK Coverage Matrix</h2><span id="cov-legend" class="cov-legend"></span></div>
+          <div id="coverage-cards" class="coverage-grid"></div>
+        </section>
+        <section class="panel glass" aria-label="Threat intelligence">
+          <div class="panel-head"><h2>Threat Intel Feed</h2></div>
+          <div id="intel-cards" class="intel-list"></div>
+        </section>
       </div>
-      <div id="noise-chart" class="noise-wrap"></div>
     </section>
 
-  </section>
-
-  <aside class="col-side">
-
-    <section class="panel glass" id="panel-approvals" aria-label="Approval queue">
-      <div class="panel-head">
-        <h2>Approval Queue</h2>
-        <span id="approval-count" class="count-chip" hidden></span>
+    <!-- ================================================================= NOISE LAB -->
+    <section class="view" data-view="noise" id="view-noise">
+      <div class="ov-grid-2">
+        <section class="panel glass" aria-label="Backtest vs forecast">
+          <div class="panel-head"><h2>Backtest vs Forecast</h2><span class="panel-tag mono">sqrt scale</span></div>
+          <div id="noise-chart" class="noise-wrap"></div>
+        </section>
+        <section class="panel glass" aria-label="Backtest evidence">
+          <div class="panel-head"><h2>Backtest Evidence</h2><span class="panel-tag mono">90-day replay</span></div>
+          <div id="backtest-stats" class="bt-stats"></div>
+        </section>
       </div>
-      <div id="approval-cards" class="approval-list"></div>
+      <section class="panel glass" aria-label="Forecast timeline">
+        <div class="panel-head"><h2>Alert-Volume Forecast</h2><span id="forecast-model" class="panel-tag mono"></span></div>
+        <div id="forecast-chart" class="forecast-wrap"></div>
+      </section>
     </section>
 
-    <section class="panel glass panel-flight" id="panel-flight" aria-label="Flight recorder">
-      <div class="panel-head">
-        <h2>Flight Recorder</h2>
-        <span id="flight-live" class="live-dot" hidden>&#9679; live</span>
+    <!-- ============================================================== GOVERNANCE -->
+    <section class="view" data-view="governance" id="view-governance">
+      <div class="gov-layout">
+        <section class="panel glass" aria-label="Approval queue">
+          <div class="panel-head"><h2>Approval Queue</h2><span id="approval-count" class="count-chip" hidden></span></div>
+          <div id="approval-cards" class="approval-list"></div>
+        </section>
+        <section class="panel glass" aria-label="Policy checks">
+          <div class="panel-head"><h2>Policy Gate</h2><span id="policy-tally" class="panel-tag mono"></span></div>
+          <div id="policy-grid" class="policy-grid"></div>
+          <div id="evidence-packs" class="evidence-packs"></div>
+        </section>
       </div>
-      <table class="flight-table">
-        <thead>
-          <tr><th class="ft-seq">#</th><th class="ft-time">time</th><th>agent</th><th>action</th><th>detail</th></tr>
-        </thead>
-        <tbody id="flight-body"></tbody>
-      </table>
     </section>
 
-  </aside>
+    <!-- ============================================================= DEPLOYMENTS -->
+    <section class="view" data-view="deployments" id="view-deployments">
+      <section class="panel glass" aria-label="Deployed detections">
+        <div class="panel-head"><h2>Deployed Detections</h2><span class="panel-tag mono">native saved searches</span></div>
+        <div id="deploy-cards" class="deploy-list"></div>
+      </section>
+    </section>
 
-</main>
+    <!-- ========================================================== FLIGHT RECORDER -->
+    <section class="view" data-view="flight" id="view-flight">
+      <section class="panel glass panel-flight" aria-label="Flight recorder">
+        <div class="panel-head">
+          <h2>Agent Flight Recorder</h2>
+          <div class="ft-controls">
+            <select id="flight-filter" class="run-select mono"><option value="">all agents</option></select>
+            <span id="flight-count" class="panel-tag mono"></span>
+          </div>
+        </div>
+        <table class="flight-table">
+          <thead><tr><th class="ft-seq">#</th><th class="ft-time">time</th><th>agent</th><th>action</th><th>detail</th></tr></thead>
+          <tbody id="flight-body"></tbody>
+        </table>
+      </section>
+    </section>
 
-<footer class="footer">
-  <div id="run-summary" class="run-summary"></div>
-  <div class="footer-brand">forged by aegis</div>
-</footer>
+    <!-- ================================================================ AI MODELS -->
+    <section class="view" data-view="models" id="view-models">
+      <section class="panel glass" aria-label="Model stack">
+        <div class="panel-head"><h2>Model &amp; Platform Stack</h2><span id="models-live" class="panel-tag mono"></span></div>
+        <div id="models-grid" class="models-grid"></div>
+      </section>
+    </section>
+
+    <!-- ============================================================== RUN HISTORY -->
+    <section class="view" data-view="history" id="view-history">
+      <section class="panel glass" aria-label="Run history">
+        <div class="panel-head"><h2>Run History</h2><span id="history-count" class="panel-tag mono"></span></div>
+        <div id="history-list" class="history-list"></div>
+      </section>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div id="run-summary" class="run-summary"></div>
+    <div class="footer-brand">forged by aegis</div>
+  </footer>
+</div>
 
 <div id="toasts" class="toasts" aria-live="polite"></div>
 
