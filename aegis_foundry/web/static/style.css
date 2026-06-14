@@ -108,9 +108,10 @@ summary:focus-visible, a:focus-visible {
   font-family: var(--font-body); font-size: 13.5px; font-weight: 500;
   text-align: left; cursor: pointer;
   transition: background var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out),
-    border-color var(--t-fast) var(--ease-out);
+    border-color var(--t-fast) var(--ease-out), transform var(--t-fast) var(--ease-out);
+  animation: nav-item-in 0.45s var(--ease-out) backwards;
 }
-.nav-item:hover { background: var(--glass-bg); color: var(--ink-bright); }
+.nav-item:hover { background: var(--glass-bg); color: var(--ink-bright); transform: translateX(3px); }
 .nav-item.active {
   background: var(--glass-bg-strong);
   border-color: var(--glass-border-bright);
@@ -122,8 +123,26 @@ summary:focus-visible, a:focus-visible {
   background: linear-gradient(180deg, var(--brand-hot), var(--brand));
   box-shadow: 0 0 10px rgba(255,87,34,0.55);
 }
-.ni-ic { width: 19px; height: 19px; flex-shrink: 0; }
+.ni-ic { width: 19px; height: 19px; flex-shrink: 0; transition: transform var(--t-fast) var(--ease-spring), color var(--t-fast) var(--ease-out); }
+.nav-item:hover .ni-ic { transform: translateX(2px) scale(1.12); color: var(--brand-hot); }
 .nav-item.active .ni-ic { color: var(--brand-hot); }
+
+/* nav entrance stagger — items cascade in from the left on load */
+@keyframes nav-item-in { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+.nav-item:nth-child(1) { animation-delay: 0.03s; }
+.nav-item:nth-child(2) { animation-delay: 0.07s; }
+.nav-item:nth-child(3) { animation-delay: 0.11s; }
+.nav-item:nth-child(4) { animation-delay: 0.15s; }
+.nav-item:nth-child(5) { animation-delay: 0.19s; }
+.nav-item:nth-child(6) { animation-delay: 0.23s; }
+.nav-item:nth-child(7) { animation-delay: 0.27s; }
+.nav-item:nth-child(8) { animation-delay: 0.31s; }
+.nav-item:nth-child(9) { animation-delay: 0.35s; }
+.nav-item:nth-child(10) { animation-delay: 0.39s; }
+.nav-item:nth-child(11) { animation-delay: 0.43s; }
+/* active accent bar springs in vertically */
+.nav-item.active::before { transform-origin: center; animation: nav-bar-in 0.32s var(--ease-spring) backwards; }
+@keyframes nav-bar-in { from { transform: scaleY(0); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
 .ni-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ni-badge {
   font-family: var(--font-mono); font-size: 9.5px; font-weight: 600;
@@ -758,13 +777,14 @@ details.evidence[open] summary::before { content: "\25BE "; }
 .toast-ok { border-left-color: var(--emerald); }
 
 /* ------------------------------------------------------------ responsive */
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 1180px) {
   .ov-grid, .cov-layout { grid-template-columns: 1fr; }
 }
 @media (max-width: 960px) {
-  .sidenav { transform: translateX(-100%); transition: transform var(--t-med) var(--ease-out); }
-  body.nav-open .sidenav { transform: translateX(0); }
-  body.nav-open::after { content: ""; position: fixed; inset: 0; z-index: 65; background: rgba(0,0,0,0.5); }
+  .sidenav { left: -264px !important; transition: left var(--t-med) var(--ease-out); box-shadow: 0 0 60px rgba(0,0,0,0.6); }
+  body.nav-open .sidenav { left: 0 !important; }
+  body.nav-open::after { content: ""; position: fixed; inset: 0; z-index: 65; background: rgba(0,0,0,0.55); animation: fade-in var(--t-med) var(--ease-out); }
   .workspace { margin-left: 0; }
   .burger { display: inline-flex; }
   .ov-grid-2, .gov-layout { grid-template-columns: 1fr; }
@@ -789,6 +809,7 @@ details.evidence[open] summary::before { content: "\25BE "; }
   .approval-card::after { animation: none; opacity: 0.85; }
   .badge-forged::after { display: none; }
   .live-dot, .ni-dot { animation: none; }
+  .nav-item, .nav-item.active::before { animation: none; }
   .view { animation: none; }
   .btn-start .spin { animation-duration: 0.9s !important; animation-iteration-count: infinite !important; }
   .toast { transition: none; }
