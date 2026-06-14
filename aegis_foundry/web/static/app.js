@@ -574,7 +574,7 @@
     if (note) {
       const stage = (S.runState && S.runState.stage) || S.stage;
       note.textContent = S.running ? `Stage in flight: ${stage || "…"}`
-        : stage === "done" ? "Run complete — all nine agents reported." : "";
+        : stage === "done" ? "Run complete — all ten agents reported." : "";
     }
     const ovRun = $("ov-pipeline-run"); if (ovRun) ovRun.textContent = effectiveRunId() || "";
     const plRun = $("pipeline-run"); if (plRun) plRun.textContent = effectiveRunId() || "";
@@ -956,38 +956,80 @@
   }
 
   // ============================================================ deployments
+  // Technique ids from a raw existing-saved-search inventory entry.
+  function existingTechniques(rule) {
+    const raw = rule.mitre_techniques || rule.techniques || [];
+    const out = [];
+    for (const t of Array.isArray(raw) ? raw : []) {
+      if (typeof t === "string" && /^T\d/.test(t)) out.push(t);
+      else if (t && typeof t === "object") {
+        const id = t.technique_id || t.id || t.technique;
+        if (typeof id === "string" && /^T\d/.test(id)) out.push(id);
+      }
+    }
+    return out;
+  }
+
   function renderDeployments() {
     const wrap = $("deploy-cards");
     if (!wrap) return;
     const st = S.runState;
     const deps = st && st.deployments ? st.deployments : {};
     const ids = Object.keys(deps);
-    if (!ids.length) { wrap.innerHTML = emptyBox("No deployments yet — approved rules ship here as native saved searches."); return; }
-    wrap.innerHTML = ids.map((rid) => {
-      const d = deps[rid];
-      const rule = (st.rules || {})[rid] || {};
-      const ver = (st.verifications || {})[rid] || null;
-      const modeCls = d.rolled_back ? "dep-rolled" : d.mode === "active" ? "dep-active" : "dep-shadow";
-      const modeLabel = d.rolled_back ? "ROLLED BACK" : (d.mode || "shadow").toUpperCase();
-      const techs = (rule.mitre_techniques || []).map((t) => `<span class="chip chip-tech">${escapeHtml(t)}</span>`).join("");
-      let verEl = `<div class="dep-ver dep-ver-pending">verification pending</div>`;
-      if (ver) {
-        const ok = ver.action === "ok";
-        verEl = `<div class="dep-ver ${ok ? "dep-ver-ok" : "dep-ver-warn"}">` +
-          `<div class="dv-row"><span>observed</span><strong>${fmtNum(ver.observed_weekly_alerts)}/wk</strong></div>` +
-          `<div class="dv-row"><span>forecast</span><strong>${fmtNum(ver.forecast_weekly_alerts)}/wk</strong></div>` +
-          `<div class="dv-row"><span>drift</span><strong>${Number(ver.drift_ratio).toFixed(2)}×</strong></div>` +
-          `<div class="dv-verdict">${ver.within_forecast_band ? "within 90% band" : "outside band"} · action: ${escapeHtml(ver.action)}</div>` +
-          `</div>`;
-      }
-      return `<article class="deploy-card ${modeCls}">` +
-        `<div class="dep-head"><span class="dep-name mono">${escapeHtml(d.saved_search_name || rule.name || rid)}</span>` +
-        `<span class="dep-mode ${modeCls}">${modeLabel}</span></div>` +
-        `<div class="dep-meta">${techs}<span class="chip">v${escapeHtml(String(d.rule_version != null ? d.rule_version : "?"))}</span>` +
-        `<span class="chip chip-recall">${escapeHtml(rule.severity || "medium")}</span></div>` +
-        `<div class="dep-rollback mono" title="rollback token">⟲ ${escapeHtml(d.rollback_token || "—")}</div>` +
-        verEl + `</article>`;
-    }).join("");
+    const existing = (st && Array.isArray(st.existing_rules)) ? st.existing_rules : [];
+
+    let html = "";
+
+    // 1) Detections forged by Aegis in the selected run (rich cards).
+    if (ids.length) {
+      html += `<div class="dep-section-h">Forged by Aegis <span class="dep-section-sub">this run · native saved searches with rollback &amp; drift</span></div>`;
+      html += `<div class="deploy-list">` + ids.map((rid) => {
+        const d = deps[rid];
+        const rule = (st.rules || {})[rid] || {};
+        const ver = (st.verifications || {})[rid] || null;
+        const modeCls = d.rolled_back ? "dep-rolled" : d.mode === "active" ? "dep-active" : "dep-shadow";
+        const modeLabel = d.rolled_back ? "ROLLED BACK" : (d.mode || "shadow").toUpperCase();
+        const techs = (rule.mitre_techniques || []).map((t) => `<span class="chip chip-tech">${escapeHtml(t)}</span>`).join("");
+        let verEl = `<div class="dep-ver dep-ver-pending">verification pending</div>`;
+        if (ver) {
+          const ok = ver.action === "ok";
+          verEl = `<div class="dep-ver ${ok ? "dep-ver-ok" : "dep-ver-warn"}">` +
+            `<div class="dv-row"><span>observed</span><strong>${fmtNum(ver.observed_weekly_alerts)}/wk</strong></div>` +
+            `<div class="dv-row"><span>forecast</span><strong>${fmtNum(ver.forecast_weekly_alerts)}/wk</strong></div>` +
+            `<div class="dv-row"><span>drift</span><strong>${Number(ver.drift_ratio).toFixed(2)}×</strong></div>` +
+            `<div class="dv-verdict">${ver.within_forecast_band ? "within 90% band" : "outside band"} · action: ${escapeHtml(ver.action)}</div>` +
+            `</div>`;
+        }
+        return `<article class="deploy-card ${modeCls}">` +
+          `<div class="dep-head"><span class="dep-name mono">${escapeHtml(d.saved_search_name || rule.name || rid)}</span>` +
+          `<span class="dep-mode ${modeCls}">${modeLabel}</span></div>` +
+          `<div class="dep-meta">${techs}<span class="chip">v${escapeHtml(String(d.rule_version != null ? d.rule_version : "?"))}</span>` +
+          `<span class="chip chip-recall">${escapeHtml(rule.severity || "medium")}</span></div>` +
+          `<div class="dep-rollback mono" title="rollback token">⟲ ${escapeHtml(d.rollback_token || "—")}</div>` +
+          verEl + `</article>`;
+      }).join("") + `</div>`;
+    }
+
+    // 2) The pre-existing detection estate Aegis monitors (from the inventory).
+    if (existing.length) {
+      html += `<div class="dep-section-h">Existing estate <span class="dep-section-sub">${existing.length} saved search${existing.length === 1 ? "" : "es"} already covering the environment</span></div>`;
+      html += `<div class="deploy-list">` + existing.map((r) => {
+        const name = String(r.name || r.title || "saved search");
+        const techs = existingTechniques(r);
+        const techChips = techs.length
+          ? techs.map((t) => `<span class="chip chip-tech" title="${escapeHtml((TECH_CATALOG[t] || [])[0] || "")}">${escapeHtml(t)}</span>`).join("")
+          : `<span class="chip">unmapped</span>`;
+        const tname = techs.length ? (TECH_CATALOG[techs[0]] || [])[0] || "" : "";
+        return `<article class="deploy-card dep-existing">` +
+          `<div class="dep-head"><span class="dep-name mono">${escapeHtml(name)}</span>` +
+          `<span class="dep-mode dep-covered">COVERED</span></div>` +
+          `<div class="dep-meta">${techChips}</div>` +
+          (tname ? `<div class="dep-existing-tech">${escapeHtml(tname)}</div>` : "") +
+          `<div class="dep-existing-note">pre-existing detection · monitored by Aegis</div></article>`;
+      }).join("") + `</div>`;
+    }
+
+    wrap.innerHTML = html || emptyBox("No deployments yet — approved rules ship here as native saved searches.");
   }
 
   // ======================================================== flight recorder
@@ -1101,14 +1143,24 @@
     const st = S.runState, rid = firstRuleId(st);
     const fc = st && rid && st.forecasts ? st.forecasts[rid] : null;
     const liveModel = fc ? fc.model : null;
+    const isCDTSM = liveModel ? /cdtsm/i.test(liveModel) : false;
+    const offline = !!(st && st.run_id) && !isCDTSM;  // offline demo uses the EWMA fallback
     const ml = $("models-live");
-    if (ml) ml.textContent = liveModel ? `live forecaster: ${liveModel}` : "";
-    grid.innerHTML = MODELS.map((m) => {
+    if (ml) ml.textContent = liveModel
+      ? (isCDTSM ? "forecaster in use: CDTSM" : "forecaster in use: EWMA fallback")
+      : "";
+    // Honest note: in the offline demo, model calls are deterministic mocks and the
+    // forecaster degrades to the labeled EWMA fallback — by design, not a failure.
+    const note = (st && st.run_id)
+      ? `<div class="models-note">${offline
+          ? "Offline demo — model calls are served by deterministic mocks and the forecaster uses the honest <b>EWMA fallback</b> (the Cisco Deep Time Series Model runs on Splunk Cloud via AI Toolkit). Set <code>AEGIS_MODE=live</code> with Splunk credentials to drive the real hosted models."
+          : "Live mode — the real Splunk-hosted models are in use."}</div>`
+      : "";
+    grid.innerHTML = note + MODELS.map((m) => {
       const powers = m.powers.map((p) => `<span class="chip">${escapeHtml(AGENT_LABELS[p] || p)}</span>`).join("");
       let liveBadge = "";
       if (m.live && liveModel) {
-        const isCDTSM = /cdtsm/i.test(liveModel);
-        liveBadge = `<span class="model-live ${isCDTSM ? "ml-on" : "ml-fallback"}">${isCDTSM ? "● active" : "● fallback: " + escapeHtml(liveModel)}</span>`;
+        liveBadge = `<span class="model-live ${isCDTSM ? "ml-on" : "ml-fallback"}" title="${isCDTSM ? "CDTSM active via Splunk AI Toolkit" : "Offline: using the labeled EWMA fallback. CDTSM requires Splunk Cloud."}">${isCDTSM ? "● active" : "● standby · EWMA fallback"}</span>`;
       }
       return `<article class="model-card mc-${m.accent}">` +
         `<div class="mc-bar"></div>` +
