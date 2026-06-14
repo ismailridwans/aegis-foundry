@@ -21,6 +21,7 @@ API (all JSON responses are ``application/json; charset=utf-8``):
 - ``GET  /api/runs/{id}``           -> the run's raw ``state.json``
 - ``GET  /api/runs/{id}/flight``    -> flight-recorder events
 - ``GET  /api/runs/{id}/evidence``  -> evidence packs (markdown)
+- ``GET  /api/runs/{id}/audit``     -> audit-chain tamper-evidence status
 - ``GET  /api/pending``             -> pending approval requests (+ evidence)
 - ``POST /api/approve``             -> resolve one approval request
 - ``POST /api/pipeline/start``      -> launch a pipeline run in a thread
@@ -39,6 +40,7 @@ from typing import Any, Optional
 
 from aegis_foundry.config import AppConfig
 from aegis_foundry.orchestrator import run_pipeline
+from aegis_foundry.state import PipelineState
 from aegis_foundry.web.approvals import ApprovalBroker, set_broker
 
 __all__ = ["ConsoleServer", "RunsReader"]
@@ -61,6 +63,7 @@ _EVIDENCE_FILENAME_RE = re.compile(r"^(?P<rule_id>.+)_v(?P<version>\d+)\.md$")
 _RUN_STATE_RE = re.compile(r"^/api/runs/([^/]+)$")
 _RUN_FLIGHT_RE = re.compile(r"^/api/runs/([^/]+)/flight$")
 _RUN_EVIDENCE_RE = re.compile(r"^/api/runs/([^/]+)/evidence$")
+_RUN_AUDIT_RE = re.compile(r"^/api/runs/([^/]+)/audit$")
 
 # Served for GET / when the frontend bundle has not been installed yet, so
 # the console degrades to a navigable API directory instead of a 404.
@@ -158,6 +161,23 @@ def _build_headline(state: dict[str, Any]) -> dict[str, Any]:
             verification = str(ver["action"])
 
     budget = state.get("fp_budget_weekly")
+
+    # Deep-feature headline extras (all tolerant of older runs without them).
+    roi = state.get("roi") or {}
+    roi_annual = roi.get("total_annual_value") if isinstance(roi, dict) else None
+    robustness = state.get("robustness") or {}
+    adv_recalls = [
+        r.get("adversarial_recall")
+        for r in robustness.values()
+        if isinstance(r, dict) and isinstance(r.get("adversarial_recall"), (int, float))
+        and r.get("variants_total")
+    ]
+    adversarial_recall = min(adv_recalls) if adv_recalls else None
+    compliance = state.get("compliance") or []
+    compliance_controls = sum(
+        len(a.get("controls") or []) for a in compliance if isinstance(a, dict)
+    )
+
     return {
         "gaps": len(state.get("gaps") or []),
         "rules": len(rules),
@@ -168,6 +188,9 @@ def _build_headline(state: dict[str, Any]) -> dict[str, Any]:
         "decision": decision,
         "deployment_mode": deployment_mode,
         "verification": verification,
+        "roi_annual": float(roi_annual) if isinstance(roi_annual, (int, float)) else None,
+        "adversarial_recall": adversarial_recall,
+        "compliance_controls": compliance_controls,
     }
 
 
@@ -267,6 +290,18 @@ class RunsReader:
             })
         events.sort(key=lambda e: e["seq"])
         return events
+
+    def audit_status(self, run_id: str) -> Optional[dict[str, Any]]:
+        """Tamper-evidence summary: {count, chain_ok, broken_seq} for a run."""
+        state = self.load_state(run_id)
+        if state is None:
+            return None
+        try:
+            ps = PipelineState.from_dict(state)
+        except Exception:  # noqa: BLE001 - malformed state -> report unknown
+            return {"count": len(state.get("audit") or []), "chain_ok": None, "broken_seq": None}
+        ok, broken = ps.verify_audit_chain()
+        return {"count": len(ps.audit), "chain_ok": ok, "broken_seq": broken}
 
     def evidence(self, run_id: str) -> Optional[list[dict[str, Any]]]:
         """Evidence packs as [{rule_id, version, filename, markdown}]."""
@@ -497,6 +532,8 @@ class _ConsoleRequestHandler(BaseHTTPRequestHandler):
                 self._serve_run_payload(match.group(1), self.console.reader.flight_events)
             elif (match := _RUN_EVIDENCE_RE.match(path)) is not None:
                 self._serve_run_payload(match.group(1), self.console.reader.evidence)
+            elif (match := _RUN_AUDIT_RE.match(path)) is not None:
+                self._serve_run_payload(match.group(1), self.console.reader.audit_status)
             elif (match := _RUN_STATE_RE.match(path)) is not None:
                 self._serve_run_payload(match.group(1), self.console.reader.load_state)
             else:

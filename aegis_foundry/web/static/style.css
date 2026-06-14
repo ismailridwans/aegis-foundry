@@ -624,6 +624,7 @@ details.evidence[open] summary::before { content: "\25BE "; }
 .agent-backtest-engineer { color: var(--gold); }
 .agent-noise-forecaster { color: var(--violet); }
 .agent-tuning-optimizer { color: var(--brand-hot); }
+.agent-red-team { color: var(--rose); }
 .agent-governor { color: var(--gold); }
 .agent-deployer { color: var(--cyan); }
 .agent-verifier { color: var(--emerald); }
@@ -664,6 +665,72 @@ details.evidence[open] summary::before { content: "\25BE "; }
 .hist-metrics span { white-space: nowrap; }
 .hist-cut { color: var(--emerald); font-weight: 600; }
 .hist-time { font-size: 10px; color: var(--ink-faint); margin-top: 10px; }
+
+/* ----------------------------------------------------- COMMAND CENTER · ROI */
+.roi-banner { margin-bottom: 18px; padding: 22px 26px; overflow: hidden; position: relative; }
+.roi-banner::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(620px 180px at 12% -40%, rgba(255,87,34,0.12), transparent 70%);
+}
+.roi-hero { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; position: relative; }
+.roi-headline { display: flex; flex-direction: column; gap: 4px; min-width: 220px; }
+.roi-eyebrow { font-size: 10.5px; letter-spacing: 0.18em; color: var(--ink-faint); font-family: var(--font-display); }
+.roi-big { font-family: var(--font-display); font-weight: 700; font-size: clamp(34px, 4vw, 52px); line-height: 1; }
+.roi-yr { font-size: 0.45em; color: var(--ink-faint); -webkit-text-fill-color: var(--ink-faint); }
+.roi-cells { display: flex; gap: 14px; flex-wrap: wrap; flex: 1; justify-content: flex-end; }
+.roi-cell { padding: 10px 16px; border-left: 1px solid var(--glass-border); min-width: 120px; }
+.roi-v { font-family: var(--font-mono); font-size: 18px; font-weight: 600; color: var(--ink-bright); }
+.roi-l { font-size: 11px; color: var(--ink-faint); margin-top: 3px; }
+
+/* ------------------------------------------------------- RED-TEAM GAUNTLET */
+.redteam-body { display: flex; flex-direction: column; gap: 18px; }
+.rt-card { border: 1px solid var(--glass-border); border-radius: var(--r-md); background: rgba(255,255,255,0.02); padding: 18px; }
+.rt-top { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
+.rt-ring {
+  width: 104px; height: 104px; border-radius: 50%; flex-shrink: 0;
+  display: grid; place-items: center; padding: 9px;
+  -webkit-mask: radial-gradient(circle 41px at center, transparent 98%, #000 100%);
+}
+.rt-ring-in { width: 100%; height: 100%; border-radius: 50%; background: var(--bg-raised); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.rt-pct { font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--ink-bright); }
+.rt-pl { font-size: 9px; letter-spacing: 0.08em; color: var(--ink-faint); text-transform: uppercase; }
+.rt-meta { flex: 1; min-width: 240px; }
+.rt-name { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--ink-bright); margin: 0 0 5px; }
+.rt-sub { font-size: 11.5px; color: var(--ink-soft); margin-bottom: 8px; }
+.rt-verdict { font-size: 12px; font-weight: 600; display: inline-block; padding: 2px 11px; border-radius: var(--r-pill); border: 1px solid; }
+.rt-verdict.ok { color: var(--emerald); border-color: rgba(61,220,151,0.45); background: rgba(61,220,151,0.08); }
+.rt-verdict.bad { color: var(--rose); border-color: rgba(255,93,125,0.45); background: rgba(255,93,125,0.08); }
+.rt-missed { margin-top: 10px; }
+.rt-missed-h { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); }
+.rt-missed ul { margin: 5px 0 0; padding-left: 18px; }
+.rt-missed li { font-size: 12px; color: var(--ink-soft); }
+.rt-variants { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 7px; margin-top: 16px; border-top: 1px dashed var(--glass-border); padding-top: 14px; }
+.rt-variant { display: flex; align-items: center; gap: 8px; font-size: 11.5px; padding: 5px 9px; border-radius: var(--r-sm); border: 1px solid var(--glass-border); }
+.rt-hit { background: rgba(61,220,151,0.05); }
+.rt-miss { background: rgba(255,93,125,0.07); border-color: rgba(255,93,125,0.35); }
+.rt-mark { font-weight: 700; }
+.rt-hit .rt-mark { color: var(--emerald); }
+.rt-miss .rt-mark { color: var(--rose); }
+.rt-mut { color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ----------------------------------------------------------- COMPLIANCE */
+.cmp-summary { font-size: 13px; color: var(--ink-soft); margin-bottom: 16px; }
+.cmp-summary strong { color: var(--ink-bright); }
+.compliance-body { display: flex; flex-direction: column; gap: 14px; }
+.cmp-card { border: 1px solid var(--glass-border); border-radius: var(--r-md); background: rgba(255,255,255,0.02); padding: 16px 18px; }
+.cmp-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.cmp-tech { font-size: 13.5px; font-weight: 600; color: var(--ink-bright); }
+.cmp-rule { font-size: 10.5px; color: var(--ink-faint); margin-left: auto; }
+.cmp-groups { display: flex; flex-direction: column; gap: 10px; }
+.cmp-fw-name { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cyan); margin-bottom: 6px; }
+.cmp-ctrls { display: flex; gap: 8px; flex-wrap: wrap; }
+.cmp-ctrl { font-size: 11.5px; color: var(--ink-soft); border: 1px solid var(--glass-border-bright); background: rgba(255,255,255,0.03); border-radius: var(--r-sm); padding: 4px 10px; }
+.cmp-ctrl b { color: var(--ink-bright); font-family: var(--font-mono); }
+
+/* ----------------------------------------------------------- AUDIT BADGE */
+.audit-badge { font-family: var(--font-mono); font-size: 10.5px; padding: 2px 10px; border-radius: var(--r-pill); border: 1px solid var(--glass-border-bright); color: var(--ink-soft); white-space: nowrap; }
+.audit-ok { color: var(--emerald); border-color: rgba(61,220,151,0.45); background: rgba(61,220,151,0.07); }
+.audit-bad { color: var(--rose); border-color: rgba(255,93,125,0.5); background: rgba(255,93,125,0.09); }
 
 /* ---------------------------------------------------------------- footer */
 .footer {

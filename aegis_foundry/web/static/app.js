@@ -14,20 +14,20 @@
   const AGENTS = [
     "intel-scout", "coverage-cartographer", "detection-author",
     "backtest-engineer", "noise-forecaster", "tuning-optimizer",
-    "governor", "deployer", "verifier",
+    "red-team", "governor", "deployer", "verifier",
   ];
 
   const AGENT_LABELS = {
     "intel-scout": "Intel Scout", "coverage-cartographer": "Cartographer",
     "detection-author": "Author", "backtest-engineer": "Backtest",
     "noise-forecaster": "Forecaster", "tuning-optimizer": "Tuner",
-    "governor": "Governor", "deployer": "Deployer", "verifier": "Verifier",
+    "red-team": "Red-Team", "governor": "Governor", "deployer": "Deployer", "verifier": "Verifier",
   };
 
   const AGENT_SHORT = {
     "orchestrator": "orch", "intel-scout": "intel", "coverage-cartographer": "cartog",
     "detection-author": "author", "backtest-engineer": "backtest",
-    "noise-forecaster": "forecast", "tuning-optimizer": "tuner",
+    "noise-forecaster": "forecast", "tuning-optimizer": "tuner", "red-team": "redteam",
     "governor": "governor", "deployer": "deployer", "verifier": "verifier",
   };
 
@@ -39,15 +39,16 @@
     "backtest-engineer": { n: "04", role: "Replays labeled history; measures recall & precision" },
     "noise-forecaster": { n: "05", role: "Prices future alert volume with CDTSM" },
     "tuning-optimizer": { n: "06", role: "Tightens the rule until noise fits budget" },
-    "governor": { n: "07", role: "Runs policy checks; builds the evidence pack; gates deploy" },
-    "deployer": { n: "08", role: "Ships a native saved search with a rollback token" },
-    "verifier": { n: "09", role: "Watches week one; confirms drift stays in band" },
+    "red-team": { n: "07", role: "Mutates attacks into evasion variants; proves the rule still fires" },
+    "governor": { n: "08", role: "Runs policy checks; builds the evidence pack; gates deploy" },
+    "deployer": { n: "09", role: "Ships a native saved search with a rollback token" },
+    "verifier": { n: "10", role: "Watches week one; confirms drift stays in band" },
   };
 
   const STAGE_TO_AGENT = {
     intel: "intel-scout", coverage: "coverage-cartographer",
     author: "detection-author", backtest: "backtest-engineer",
-    forecast: "noise-forecaster", tune: "tuning-optimizer",
+    forecast: "noise-forecaster", tune: "tuning-optimizer", harden: "red-team",
     govern: "governor", deploy: "deployer", verify: "verifier",
   };
 
@@ -80,12 +81,14 @@
 
   const VIEW_META = {
     overview:    ["Command Center", "Live mission overview of the detection-engineering swarm"],
-    pipeline:    ["Pipeline", "Nine governed agents, from intel to verified deployment"],
+    pipeline:    ["Pipeline", "Ten governed agents, from intel to verified deployment"],
     coverage:    ["ATT&CK Coverage", "Gaps close themselves — cells flip to FORGED BY AEGIS"],
     noise:       ["Noise Lab", "Backtest, forecast, and the budget gate that blocks loud rules"],
+    redteam:     ["Red-Team Gauntlet", "Evasion variants prove the rule resists an adversary, not just history"],
     governance:  ["Governance", "Evidence-pack review and the human approval gate"],
     deployments: ["Deployments", "Native saved searches with rollback and post-deploy drift"],
-    flight:      ["Flight Recorder", "Every agent action — immutable and Splunk-ingestible"],
+    compliance:  ["Compliance", "Each forged detection mapped to NIST 800-53 & CIS Controls"],
+    flight:      ["Flight Recorder", "Every agent action — a tamper-evident, hash-chained ledger"],
     models:      ["AI Models", "The Cisco + Splunk model stack powering the swarm"],
     history:     ["Run History", "Every pipeline run and its headline outcome"],
   };
@@ -119,6 +122,7 @@
     runs: [], runState: null, flight: [], lastEvents: [],
     pending: [], pendingKey: null,
     evidence: [], evidenceRunId: null,
+    audit: null,
     renderedStateKey: "", flightFilter: "",
   };
   let pollTimer = null, lastFlightKey = "";
@@ -292,13 +296,16 @@
   function renderActiveView() {
     switch (S.view) {
       case "noise": renderNoise(); renderBacktestStats(); renderForecastChart(); break;
+      case "redteam": renderRedTeam(); break;
       case "governance": renderPending(true); renderPolicyGrid(); renderEvidencePacks(); break;
       case "deployments": renderDeployments(); break;
+      case "compliance": renderCompliance(); break;
       case "pipeline": renderStepper(); renderAgentGrid(); break;
       case "coverage": renderCoverage(); renderIntel(); break;
       case "models": renderModels(); break;
       case "history": renderHistory(); break;
-      case "overview": renderKPIs(); renderStepper(); renderStory(); renderFeed(); renderNoise(); break;
+      case "flight": renderFlight(); renderAuditBadge(); break;
+      case "overview": renderRoi(); renderKPIs(); renderStepper(); renderStory(); renderFeed(); renderNoise(); break;
       default: break;
     }
   }
@@ -403,6 +410,117 @@
       S.running ? "agents in flight" : (stage === "done" ? "run complete" : "ready")));
 
     grid.innerHTML = cards.join("");
+  }
+
+  // ============================================================== ROI banner
+  const fmtMoney = (v) => {
+    const n = Number(v) || 0;
+    if (n >= 1e6) return "$" + (n / 1e6).toFixed(2) + "M";
+    if (n >= 1e3) return "$" + Math.round(n / 1e3) + "k";
+    return "$" + Math.round(n);
+  };
+
+  function renderRoi() {
+    const el = $("roi-banner");
+    if (!el) return;
+    const roi = S.runState && S.runState.roi;
+    if (!roi) { el.hidden = true; el.innerHTML = ""; return; }
+    el.hidden = false;
+    const cell = (big, label) =>
+      `<div class="roi-cell"><div class="roi-v">${big}</div><div class="roi-l">${escapeHtml(label)}</div></div>`;
+    el.innerHTML =
+      `<div class="roi-hero">` +
+        `<div class="roi-headline"><span class="roi-eyebrow">ANNUAL VALUE DELIVERED</span>` +
+        `<span class="roi-big grad-text">${fmtMoney(roi.total_annual_value)}<span class="roi-yr">/yr</span></span></div>` +
+        `<div class="roi-cells">` +
+          cell(fmtNum(roi.alerts_avoided_weekly) + "/wk", "alerts avoided") +
+          cell(Math.round(roi.analyst_hours_saved_weekly) + " hrs/wk", "analyst time saved") +
+          cell(fmtMoney(roi.annualized_dollars_saved), "triage cost avoided / yr") +
+          cell(fmtNum(roi.mttd_days_saved) + " days", "faster to coverage") +
+        `</div>` +
+      `</div>`;
+  }
+
+  // ============================================================ Red-Team view
+  function renderRedTeam() {
+    const wrap = $("redteam-body");
+    if (!wrap) return;
+    const st = S.runState;
+    const robustness = st && st.robustness ? st.robustness : {};
+    const ids = Object.keys(robustness);
+    if (!ids.length) {
+      wrap.innerHTML = emptyBox("No gauntlet yet — the Red-Team agent mutates each within-budget rule into evasion variants and replays them.");
+      return;
+    }
+    wrap.innerHTML = ids.map((rid) => {
+      const r = robustness[rid];
+      const rule = (st.rules || {})[rid] || {};
+      const pct = Math.round((r.adversarial_recall || 0) * 100);
+      const pass = (r.adversarial_recall || 0) >= 0.75;
+      const ring = `conic-gradient(${pass ? "var(--emerald)" : "var(--rose)"} ${pct * 3.6}deg, rgba(255,255,255,0.08) 0)`;
+      const variants = (r.variants || []).slice(0, 24).map((v) =>
+        `<div class="rt-variant ${v.fired ? "rt-hit" : "rt-miss"}">` +
+        `<span class="rt-mark">${v.fired ? "✓" : "✗"}</span>` +
+        `<span class="rt-mut">${escapeHtml(v.mutation)}</span></div>`).join("");
+      const missed = (r.missed_mutations || []).map((m) => `<li>${escapeHtml(m)}</li>`).join("");
+      return `<article class="rt-card">` +
+        `<div class="rt-top">` +
+          `<div class="rt-ring" style="background:${ring}"><div class="rt-ring-in"><span class="rt-pct">${pct}%</span><span class="rt-pl">adv. recall</span></div></div>` +
+          `<div class="rt-meta">` +
+            `<h3 class="rt-name">${escapeHtml(rule.name || rid)}</h3>` +
+            `<div class="rt-sub mono">${r.variants_caught}/${r.variants_total} evasion variants caught · model ${escapeHtml(r.model || "")}</div>` +
+            `<div class="rt-verdict ${pass ? "ok" : "bad"}">${pass ? "PASSES gauntlet (≥75%)" : "BELOW threshold (75%)"}</div>` +
+            (missed ? `<div class="rt-missed"><span class="rt-missed-h">Hardening opportunities</span><ul>${missed}</ul></div>` : `<div class="rt-missed"><span class="rt-missed-h">No evasions found</span></div>`) +
+          `</div>` +
+        `</div>` +
+        `<div class="rt-variants">${variants}</div></article>`;
+    }).join("");
+  }
+
+  // =========================================================== Compliance view
+  function renderCompliance() {
+    const wrap = $("compliance-body");
+    if (!wrap) return;
+    const atts = (S.runState && S.runState.compliance) || [];
+    if (!atts.length) {
+      wrap.innerHTML = emptyBox("No attestation yet — each deployed detection is mapped to NIST 800-53 and CIS Controls on deploy.");
+      return;
+    }
+    const total = atts.reduce((n, a) => n + (a.controls || []).length, 0);
+    let html = `<div class="cmp-summary">${atts.length} detection${atts.length === 1 ? "" : "s"} attesting to <strong>${total}</strong> framework control${total === 1 ? "" : "s"}</div>`;
+    html += atts.map((a) => {
+      const byFw = {};
+      (a.controls || []).forEach((c) => { (byFw[c.framework] = byFw[c.framework] || []).push(c); });
+      const groups = Object.keys(byFw).map((fw) =>
+        `<div class="cmp-fw"><div class="cmp-fw-name">${escapeHtml(fw)}</div><div class="cmp-ctrls">` +
+        byFw[fw].map((c) => `<span class="cmp-ctrl" title="${escapeHtml(c.control_name)}"><b>${escapeHtml(c.control_id)}</b> ${escapeHtml(c.control_name)}</span>`).join("") +
+        `</div></div>`).join("");
+      return `<article class="cmp-card">` +
+        `<div class="cmp-head"><span class="chip chip-tech">${escapeHtml(a.technique_id)}</span>` +
+        `<span class="cmp-tech">${escapeHtml(a.technique_name || "")}</span>` +
+        `<span class="cmp-rule mono">${escapeHtml(a.saved_search_name || "")}</span></div>` +
+        `<div class="cmp-groups">${groups}</div></article>`;
+    }).join("");
+    wrap.innerHTML = html;
+  }
+
+  // ========================================================= audit-chain badge
+  function renderAuditBadge() {
+    const el = $("audit-badge");
+    if (!el) return;
+    const a = S.audit;
+    if (!a) { el.hidden = true; return; }
+    el.hidden = false;
+    if (a.chain_ok === true) {
+      el.className = "audit-badge audit-ok";
+      el.innerHTML = `&#128274; tamper-evident ledger verified · ${a.count} events hash-chained`;
+    } else if (a.chain_ok === false) {
+      el.className = "audit-badge audit-bad";
+      el.innerHTML = `&#9888; chain broken at event #${a.broken_seq} — tampering detected`;
+    } else {
+      el.className = "audit-badge";
+      el.innerHTML = `${a.count} events`;
+    }
   }
 
   // ================================================================ stepper
@@ -1072,10 +1190,11 @@
   }
 
   async function refreshRunState(runId) {
-    if (!runId) { S.runState = null; S.flight = []; S.evidence = []; S.evidenceRunId = null; return; }
+    if (!runId) { S.runState = null; S.flight = []; S.evidence = []; S.evidenceRunId = null; S.audit = null; return; }
     await Promise.all([
       fetchJSON(`/api/runs/${encodeURIComponent(runId)}`).then((st) => { S.runState = st; }).catch(() => {}),
       fetchJSON(`/api/runs/${encodeURIComponent(runId)}/flight`).then((fl) => { S.flight = Array.isArray(fl) ? fl : []; }).catch(() => {}),
+      fetchJSON(`/api/runs/${encodeURIComponent(runId)}/audit`).then((a) => { S.audit = a; }).catch(() => { S.audit = null; }),
     ]);
     // Evidence packs only re-fetched when the run changes (they rarely change mid-run).
     if (S.evidenceRunId !== runId) {

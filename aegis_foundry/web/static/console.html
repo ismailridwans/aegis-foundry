@@ -68,6 +68,10 @@
       <svg class="ni-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c2-5 4-5 6 0s4 5 6 0 4-5 6 0"/><path d="M3 20h18"/></svg>
       <span class="ni-label">Noise Lab</span>
     </button>
+    <button type="button" class="nav-item" data-view="redteam">
+      <svg class="ni-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7 4v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z"/><path d="M9.5 11.5l1.8 1.8 3.4-3.6"/><path d="M12 2v19" opacity="0.35"/></svg>
+      <span class="ni-label">Red-Team</span>
+    </button>
     <button type="button" class="nav-item" data-view="governance">
       <svg class="ni-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 13l2 2 4-4"/></svg>
       <span class="ni-label">Governance</span>
@@ -76,6 +80,10 @@
     <button type="button" class="nav-item" data-view="deployments">
       <svg class="ni-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c3 2 4.5 5 4.5 9 0 2-.5 3.8-1.5 5.5h-6C8 14.8 7.5 13 7.5 11c0-4 1.5-7 4.5-9z"/><circle cx="12" cy="10" r="1.6"/><path d="M9 18l-2 3M15 18l2 3"/></svg>
       <span class="ni-label">Deployments</span>
+    </button>
+    <button type="button" class="nav-item" data-view="compliance">
+      <svg class="ni-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h7l3 3v15H5V3z" opacity="0.5"/><path d="M8 7h6M8 11h8M8 15h5"/><circle cx="17.5" cy="16.5" r="3.2"/><path d="M16.1 16.5l1 1 1.8-2"/></svg>
+      <span class="ni-label">Compliance</span>
     </button>
     <button type="button" class="nav-item" data-view="flight">
       <svg class="ni-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 4 13 2-6 1 -2h5"/></svg>
@@ -139,6 +147,7 @@
 
     <!-- ========================================================= COMMAND CENTER -->
     <section class="view active" data-view="overview" id="view-overview">
+      <div class="roi-banner glass" id="roi-banner" hidden></div>
       <div class="kpi-grid" id="kpi-grid"></div>
 
       <div class="ov-grid">
@@ -207,6 +216,14 @@
       </section>
     </section>
 
+    <!-- ============================================================== RED-TEAM -->
+    <section class="view" data-view="redteam" id="view-redteam">
+      <section class="panel glass" aria-label="Adversarial robustness">
+        <div class="panel-head"><h2>Adversarial Robustness Gauntlet</h2><span class="panel-tag mono">MITRE-faithful evasion variants</span></div>
+        <div id="redteam-body" class="redteam-body"></div>
+      </section>
+    </section>
+
     <!-- ============================================================== GOVERNANCE -->
     <section class="view" data-view="governance" id="view-governance">
       <div class="gov-layout">
@@ -230,12 +247,21 @@
       </section>
     </section>
 
+    <!-- =============================================================== COMPLIANCE -->
+    <section class="view" data-view="compliance" id="view-compliance">
+      <section class="panel glass" aria-label="Compliance attestation">
+        <div class="panel-head"><h2>Control-Framework Attestation</h2><span class="panel-tag mono">ATT&amp;CK &rarr; NIST 800-53 / CIS v8</span></div>
+        <div id="compliance-body" class="compliance-body"></div>
+      </section>
+    </section>
+
     <!-- ========================================================== FLIGHT RECORDER -->
     <section class="view" data-view="flight" id="view-flight">
       <section class="panel glass panel-flight" aria-label="Flight recorder">
         <div class="panel-head">
           <h2>Agent Flight Recorder</h2>
           <div class="ft-controls">
+            <span id="audit-badge" class="audit-badge" hidden></span>
             <select id="flight-filter" class="run-select mono"><option value="">all agents</option></select>
             <span id="flight-count" class="panel-tag mono"></span>
           </div>
