@@ -1251,9 +1251,22 @@
     } catch (err) { toastOnce("pending", `Could not load the approval queue: ${err.message}`); }
   }
 
+  // Adaptive polling: fast while a run is in flight (live updates matter),
+  // slow when idle. Idle is the common case for a hosted/browsed demo, and a
+  // 5s idle cadence cuts request load on a small instance ~3x vs a flat 1.5s.
+  let polling = false;
   const tick = () => { pollStatus(); pollPending(); };
-  function startPolling() { if (pollTimer !== null) return; pollTimer = setInterval(tick, 1500); tick(); }
-  function stopPolling() { if (pollTimer !== null) { clearInterval(pollTimer); pollTimer = null; } }
+  function scheduleTick() {
+    pollTimer = setTimeout(() => {
+      tick();
+      if (polling) scheduleTick();
+    }, S.running ? 1500 : 5000);
+  }
+  function startPolling() { if (polling) return; polling = true; tick(); scheduleTick(); }
+  function stopPolling() {
+    polling = false;
+    if (pollTimer !== null) { clearTimeout(pollTimer); pollTimer = null; }
+  }
   document.addEventListener("visibilitychange", () => { if (document.hidden) stopPolling(); else startPolling(); });
 
   // ================================================================ wiring

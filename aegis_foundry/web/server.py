@@ -624,7 +624,16 @@ class _ConsoleRequestHandler(BaseHTTPRequestHandler):
             self._send_json({"error": f"no such asset: {rel_path}"}, status=404)
             return
         content_type = _CONTENT_TYPES.get(target.suffix.lower(), "application/octet-stream")
-        self._send_bytes(target.read_bytes(), content_type)
+        # Static assets are cacheable — without this the browser re-downloads
+        # the JS/CSS and ~200 KB of fonts on every page load and navigation,
+        # which is painfully slow on a small (free-tier) instance. Fonts never
+        # change, so they get a long immutable TTL; CSS/JS get a short one so a
+        # redeploy is still picked up quickly.
+        if target.suffix.lower() == ".woff2":
+            cache = "public, max-age=31536000, immutable"
+        else:
+            cache = "public, max-age=600"
+        self._send_bytes(target.read_bytes(), content_type, cache_control=cache)
 
     # -- response / body plumbing ---------------------------------------------------
 
@@ -647,11 +656,14 @@ class _ConsoleRequestHandler(BaseHTTPRequestHandler):
         body = json.dumps(payload, default=str).encode("utf-8")
         self._send_bytes(body, "application/json; charset=utf-8", status=status)
 
-    def _send_bytes(self, body: bytes, content_type: str, status: int = 200) -> None:
+    def _send_bytes(
+        self, body: bytes, content_type: str, status: int = 200,
+        cache_control: str = "no-store",
+    ) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Cache-Control", "no-store")
+        self.send_header("Cache-Control", cache_control)
         self.end_headers()
         try:
             self.wfile.write(body)
