@@ -48,7 +48,7 @@
   var countStarted = false;
   var termStarted  = false;
 
-  var CAP_THRESHOLDS = [0, 0.28, 0.56, 0.82];
+  var CAP_THRESHOLDS = [0, 0.22, 0.44, 0.66, 0.85];
 
   /* ── Forge line init (needs layout + fonts) ─────────────────────────────── */
 
@@ -108,7 +108,10 @@
     { t: '[optimizer]      tightening rule…  pass 1/3',            c: 't-dim'     },
     { t: '[optimizer]      SPL v2 forecast: 2.7/week ✓',           c: 't-emerald' },
     { t: '', c: 'gap' },
-    { t: '[governor]       7/7 policy checks PASS',                     c: 't-emerald' },
+    { t: '[red-team]       replaying 24 evasion variants…',        c: 't-dim'     },
+    { t: '[red-team]       21/24 caught — 88% adversarial recall ✓', c: 't-violet' },
+    { t: '', c: 'gap' },
+    { t: '[governor]       8/8 policy checks PASS',                     c: 't-emerald' },
     { t: '[governor]       ⏳ awaiting human approval…',       c: 't-gold'    },
     { t: '[governor]       ✓ approved by human:operator',          c: 't-bright'  },
     { t: '', c: 'gap' },
@@ -117,7 +120,9 @@
     { t: '[verifier]       week-1: 3.0/week  forecast: 2.7  drift: 1.11', c: 't-violet' },
     { t: '[verifier]       within 90% confidence band — action: ok ✓', c: 't-emerald' },
     { t: '', c: 'gap' },
-    { t: 'pipeline DONE  ·  9 agents  ·  1 detection forged',  c: 't-bright'  },
+    { t: '[roi]            449.8 alerts/wk avoided ≈ $295k/yr saved', c: 't-gold' },
+    { t: '', c: 'gap' },
+    { t: 'pipeline DONE  ·  10 agents  ·  1 detection forged & hardened',  c: 't-bright'  },
   ];
 
   function renderLineInstant(body, d) {

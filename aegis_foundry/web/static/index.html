@@ -50,7 +50,7 @@
       <div class="hero-inner" data-stagger>
         <p class="eyebrow-pill glass">SPLUNK AGENTIC OPS &mdash; SECURITY TRACK</p>
         <h1 class="hero-h1">The SOC that<br /><span class="grad-text shimmer">maintains itself.</span></h1>
-        <p class="hero-sub">Nine governed agents find the coverage gap, forge the detection, price its noise before deploy, and verify it after &mdash; all inside Splunk.</p>
+        <p class="hero-sub">Ten governed agents find the gap, forge the detection, red-team it against evasion, price its noise before deploy, and verify it after &mdash; all inside Splunk.</p>
         <div class="hero-ctas">
           <a class="btn btn-primary" href="/console">Launch Console <span class="btn-arr">&rarr;</span></a>
           <a class="btn btn-ghost glass" href="#pipeline">Watch the pipeline</a>
@@ -70,8 +70,8 @@
               <span class="cell-l">drift &mdash; verified in band</span>
             </div>
             <div class="cell" role="listitem">
-              <span class="cell-v">9</span>
-              <span class="cell-l">governed agents</span>
+              <span class="cell-v">~$295k</span>
+              <span class="cell-l">/yr value &mdash; 10 governed agents</span>
             </div>
           </div>
         </div>
@@ -94,6 +94,10 @@
             <li class="chip glass">| ai command</li>
             <li class="chip glass">AppInspect CI</li>
             <li class="chip glass">BOTS v3 backtests</li>
+            <li class="chip glass">Red-Team Gauntlet</li>
+            <li class="chip glass">Tamper-evident audit</li>
+            <li class="chip glass">NIST 800-53 / CIS</li>
+            <li class="chip glass">ROI ledger</li>
           </ul>
           <ul class="chips" aria-hidden="true">
             <li class="chip glass">Splunk MCP Server</li>
@@ -104,6 +108,10 @@
             <li class="chip glass">| ai command</li>
             <li class="chip glass">AppInspect CI</li>
             <li class="chip glass">BOTS v3 backtests</li>
+            <li class="chip glass">Red-Team Gauntlet</li>
+            <li class="chip glass">Tamper-evident audit</li>
+            <li class="chip glass">NIST 800-53 / CIS</li>
+            <li class="chip glass">ROI ledger</li>
           </ul>
         </div>
       </div>
@@ -142,7 +150,7 @@
         <div class="pipe-head reveal">
           <p class="eyebrow">THE PIPELINE</p>
           <h2 class="sec-h2">Watch a detection forge itself.</h2>
-          <p class="pipe-hint">Keep scrolling &mdash; the forge line follows you through all nine agents.</p>
+          <p class="pipe-hint">Keep scrolling &mdash; the forge line follows you through all ten agents.</p>
         </div>
         <div class="pipe-body">
           <div class="pipe-board">
@@ -155,53 +163,58 @@
                     <stop offset="1" stop-color="#8b7bff" />
                   </linearGradient>
                 </defs>
-                <path class="forge-rail" d="M180 112 L500 112 L820 112 C950 112 950 280 820 280 L500 280 L180 280 C50 280 50 448 180 448 L500 448 L820 448" />
-                <path class="forge-glow" id="forge-glow" d="M180 112 L500 112 L820 112 C950 112 950 280 820 280 L500 280 L180 280 C50 280 50 448 180 448 L500 448 L820 448" />
-                <path class="forge-line" id="forge-line" d="M180 112 L500 112 L820 112 C950 112 950 280 820 280 L500 280 L180 280 C50 280 50 448 180 448 L500 448 L820 448" />
+                <path class="forge-rail" d="M110 170 L305 170 L500 170 L695 170 L890 170 C965 170 965 400 890 400 L695 400 L500 400 L305 400 L110 400" />
+                <path class="forge-glow" id="forge-glow" d="M110 170 L305 170 L500 170 L695 170 L890 170 C965 170 965 400 890 400 L695 400 L500 400 L305 400 L110 400" />
+                <path class="forge-line" id="forge-line" d="M110 170 L305 170 L500 170 L695 170 L890 170 C965 170 965 400 890 400 L695 400 L500 400 L305 400 L110 400" />
               </svg>
 
-              <div class="pipe-node glass" style="--x:18%;--y:20%">
+              <div class="pipe-node glass" style="--x:11%;--y:30%">
                 <span class="pn-num">01</span>
                 <h3 class="pn-name">intel-scout</h3>
                 <p class="pn-role">Ingests advisories; extracts ATT&amp;CK techniques</p>
               </div>
-              <div class="pipe-node glass" style="--x:50%;--y:20%">
+              <div class="pipe-node glass" style="--x:30.5%;--y:30%">
                 <span class="pn-num">02</span>
-                <h3 class="pn-name">coverage-cartographer</h3>
+                <h3 class="pn-name">cartographer</h3>
                 <p class="pn-role">Maps live rules; finds T1059.001 uncovered</p>
               </div>
-              <div class="pipe-node glass" style="--x:82%;--y:20%">
+              <div class="pipe-node glass" style="--x:50%;--y:30%">
                 <span class="pn-num">03</span>
                 <h3 class="pn-name">detection-author</h3>
                 <p class="pn-role">Drafts SPL; self-corrects against validation</p>
               </div>
-              <div class="pipe-node glass" style="--x:82%;--y:50%">
+              <div class="pipe-node glass" style="--x:69.5%;--y:30%">
                 <span class="pn-num">04</span>
                 <h3 class="pn-name">backtest-engineer</h3>
                 <p class="pn-role">Replays 90 days of labeled history</p>
               </div>
-              <div class="pipe-node glass" style="--x:50%;--y:50%">
+              <div class="pipe-node glass" style="--x:89%;--y:30%">
                 <span class="pn-num">05</span>
                 <h3 class="pn-name">noise-forecaster</h3>
                 <p class="pn-role">Prices future alert volume with CDTSM</p>
               </div>
-              <div class="pipe-node glass" style="--x:18%;--y:50%">
+              <div class="pipe-node glass" style="--x:89%;--y:71%">
                 <span class="pn-num">06</span>
                 <h3 class="pn-name">tuning-optimizer</h3>
                 <p class="pn-role">Tightens the rule until noise fits budget</p>
               </div>
-              <div class="pipe-node glass" style="--x:18%;--y:80%">
+              <div class="pipe-node glass" style="--x:69.5%;--y:71%">
                 <span class="pn-num">07</span>
-                <h3 class="pn-name">governor</h3>
-                <p class="pn-role">7 policy checks; evidence pack; human gate</p>
+                <h3 class="pn-name">red-team</h3>
+                <p class="pn-role">Mutates attacks into evasion variants; proves it still fires</p>
               </div>
-              <div class="pipe-node glass" style="--x:50%;--y:80%">
+              <div class="pipe-node glass" style="--x:50%;--y:71%">
                 <span class="pn-num">08</span>
+                <h3 class="pn-name">governor</h3>
+                <p class="pn-role">8 policy checks; evidence pack; human gate</p>
+              </div>
+              <div class="pipe-node glass" style="--x:30.5%;--y:71%">
+                <span class="pn-num">09</span>
                 <h3 class="pn-name">deployer</h3>
                 <p class="pn-role">Ships a native saved search with rollback</p>
               </div>
-              <div class="pipe-node glass" style="--x:82%;--y:80%">
-                <span class="pn-num">09</span>
+              <div class="pipe-node glass" style="--x:11%;--y:71%">
+                <span class="pn-num">10</span>
                 <h3 class="pn-name">verifier</h3>
                 <p class="pn-role">Watches week one; confirms drift in band</p>
               </div>
@@ -222,8 +235,12 @@
               <p>The forecast gate rejects the noise before deploy. One tuning pass keeps all 17 true positives.</p>
             </div>
             <div class="cap">
-              <h3>Human approved &rarr; deployed &rarr; verified, drift 1.11</h3>
-              <p>7/7 policy checks pass. Week one observes 3.0/wk vs 2.7 forecast &mdash; inside the 90% band.</p>
+              <h3>Red-teamed: 88% adversarial recall</h3>
+              <p>21 of 24 MITRE-faithful evasion variants still fire. The one gap &mdash; the <code>-enc</code> alias &mdash; is flagged for hardening.</p>
+            </div>
+            <div class="cap">
+              <h3>Approved &rarr; deployed &rarr; verified, drift 1.11</h3>
+              <p>8/8 policy checks pass. Week one observes 3.0/wk vs 2.7 forecast &mdash; inside the 90% band. ROI: ~$295k/yr.</p>
             </div>
           </aside>
         </div>
@@ -249,8 +266,8 @@
             <div class="usp-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.8 12a8.2 8.2 0 1 0 2.4-5.8" /><path d="M3.8 2.8v3.4h3.4" /><path d="M9 12.4l2.2 2.2 4-4.4" /></svg>
             </div>
-            <h3>Backtest-verified AI</h3>
-            <p>Every generated detection is replayed over 90 days of labeled history. Recall and precision are measured on evidence, not vibes.</p>
+            <h3>Backtested <em>and</em> red-teamed</h3>
+            <p>Every detection is replayed over 90 days of labeled history, then a Red-Team agent mutates those attacks into evasion variants to prove it resists an adversary &mdash; not just the past.</p>
           </article>
           <article class="usp glass">
             <div class="usp-icon" aria-hidden="true">
@@ -263,8 +280,8 @@
             <div class="usp-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6.5" width="18" height="12" rx="2.5" /><path d="M6.5 12.5h2l1.4-2.8 2 5.6 1.4-2.8h3.2" /></svg>
             </div>
-            <h3>Agent flight recorder</h3>
-            <p>Every agent action lands in an immutable, Splunk-ingestible audit log. The swarm is observable in the same pane of glass it manages.</p>
+            <h3>Tamper-evident flight recorder</h3>
+            <p>Every agent action lands in a SHA-256 hash-chained, Splunk-ingestible audit log &mdash; edit any past entry and the chain breaks. The swarm is observable and provable in one pane of glass.</p>
           </article>
           <article class="usp glass">
             <div class="usp-icon" aria-hidden="true">
@@ -313,7 +330,7 @@
           <h2 class="finale-h2">Stop triaging.<br /><span class="grad-text shimmer">Start forging.</span></h2>
           <p class="finale-sub">Launch the console, start a run, and make the governance call yourself.</p>
           <a class="btn btn-primary btn-big" href="/console">Launch Console <span class="btn-arr">&rarr;</span></a>
-          <p class="finale-meta">9 agents &middot; 7 policy checks &middot; 90-day backtest &middot; 25 tests</p>
+          <p class="finale-meta">10 agents &middot; 8 policy checks &middot; adversarial gauntlet &middot; 39 tests</p>
         </div>
       </div>
     </section>

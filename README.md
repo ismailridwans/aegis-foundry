@@ -1,6 +1,6 @@
 # Aegis Foundry
 
-**The SOC that maintains itself.** An autonomous detection-engineering platform for Splunk: nine governed AI agents that find MITRE ATT&CK coverage gaps, author SPL detections, **backtest them against labeled history via the Splunk MCP Server**, **forecast their alert-noise burden with the Cisco Deep Time Series Model before deployment**, tune them to a false-positive budget, route them through human approval with a full evidence pack, deploy them as native Splunk saved searches — and then verify that reality matched the forecast.
+**The SOC that maintains itself.** An autonomous detection-engineering platform for Splunk: ten governed AI agents that find MITRE ATT&CK coverage gaps, author SPL detections, **backtest them against labeled history via the Splunk MCP Server**, **forecast their alert-noise burden with the Cisco Deep Time Series Model before deployment**, tune them to a false-positive budget, **red-team them against MITRE-faithful evasion variants**, route them through human approval with a full evidence pack, deploy them as native Splunk saved searches — then verify that reality matched the forecast, **quantify the dollar impact**, and **attest the framework controls** they satisfy. Every agent action is recorded in a **tamper-evident, hash-chained audit ledger**.
 
 ![CI](../../actions/workflows/ci.yml/badge.svg)
 **Track:** Security · **Built for the Splunk Agentic Ops Hackathon**
@@ -25,24 +25,25 @@ One offline run of `demo/run_pipeline.py` reproduces this end-to-end:
 4. **Backtest Engineer** replays it over 90 days of labeled history via the MCP search plane: **5,818 hits (~382/week)** — recall 100%, precision 0.3%.
 5. **Noise Forecaster** forecasts the rule's future fire-rate: **massively over the 25-alerts/week budget**.
 6. **Tuning Optimizer** tightens the rule (encoded-command flag, excludes the automation account) → re-backtest: **42 hits (~2.7/week predicted), all 17/17 labeled true positives retained**, precision 40%.
-7. **Governor** runs 7 policy checks, writes a Markdown **evidence pack** (SPL diff, backtest table, forecast verdict), and asks a human — or auto-approves in demo mode.
-8. **Deployer** ships it as a native Splunk saved search (with rollback token).
-9. **Verifier** watches the first post-deploy week: **observed 3.0/week vs forecast 2.7/week — inside the 90% band.** The ATT&CK heatmap cell flips from GAP to **COVERED BY AEGIS**.
+7. **Red-Team** mutates the labeled attacks into 24 MITRE-faithful evasion variants (case folding, flag aliasing, whitespace tricks, payload swaps) and replays them: **21/24 still fire — 88% adversarial recall.** The one gap (the `-enc` abbreviation) is flagged as a hardening opportunity.
+8. **Governor** runs **8 policy checks** (now including adversarial robustness), writes a Markdown **evidence pack** (SPL diff, backtest table, forecast verdict, gauntlet results), and asks a human — or auto-approves in demo mode.
+9. **Deployer** ships it as a native Splunk saved search (with rollback token).
+10. **Verifier** watches the first post-deploy week: **observed 3.0/week vs forecast 2.7/week — inside the 90% band.** The ATT&CK heatmap cell flips from GAP to **FORGED BY AEGIS**.
 
-Every agent action lands in an immutable **flight recorder** that is itself Splunk-ingestible: the agentic system is observable in the same pane of glass as the security data it manages.
+The run closes with an **ROI ledger** (≈449.8 alerts/week avoided ≈ **$295k/year** of analyst time, plus authoring cost and MTTD compression) and a **compliance attestation** mapping the new detection to NIST 800-53 (SI-4, SI-3) and CIS Controls v8. Every agent action lands in a **tamper-evident, hash-chained flight recorder** that is itself Splunk-ingestible: the agentic system is observable *and provable* in the same pane of glass as the security data it manages.
 
 ## 60-second quickstart (no Splunk, no credentials)
 
 ```bash
 pip install -e .
-python demo/run_pipeline.py --auto-approve   # full 9-agent pipeline, offline
+python demo/run_pipeline.py --auto-approve   # full 10-agent pipeline, offline
 aegis-foundry audit                          # the agent flight recorder
 aegis-foundry heatmap                        # ATT&CK coverage before/after
 ```
 
 Drop `--auto-approve` to experience the human-in-the-loop governance gate: the Governor prints the evidence summary and waits for `[a]ctive / [s]hadow / [r]eject`.
 
-Run the tests: `pip install -e .[dev] && pytest` (25 tests, including the full end-to-end storyline and a real-HTTP web-approval flow).
+Run the tests: `pip install -e .[dev] && pytest` (39 tests, including the full end-to-end storyline, the Red-Team gauntlet, the ROI ledger, the tamper-evident audit chain, compliance mapping, and a real-HTTP web-approval flow).
 
 ## Web console
 
@@ -50,11 +51,11 @@ Run the tests: `pip install -e .[dev] && pytest` (25 tests, including the full e
 aegis-foundry ui          # then open http://127.0.0.1:8787
 ```
 
-A stdlib-only web console — no frameworks, no CDN, works fully offline. It shows the **live pipeline stepper** as the nine agents hand off, **browser-based approvals** where each pending rule renders as a card with its full evidence pack (SPL diff, backtest table, forecast band, policy checks), the **ATT&CK coverage panel** whose gap cells flip to FORGED BY AEGIS as deployments land, and the streaming **agent flight recorder**. Recommended demo flow: start a run from the console with auto-approve **off** (the default), then make the active/shadow/reject call from the browser — the Governor blocks on your decision and falls back to safe shadow deployment on timeout.
+A stdlib-only web console — no frameworks, no CDN, works fully offline — built as an **eleven-view, navigation-driven operations dashboard** in liquid-glass design: a **Command Center** with an ROI banner and headline KPIs, the **live pipeline** stepper as the ten agents hand off, **ATT&CK coverage**, a **Noise Lab** (backtest vs forecast + CDTSM confidence-band chart), the **Red-Team Gauntlet** (adversarial-recall rings and the evasion-variant ledger), **Governance** with browser-based approvals and the 8-check policy gate, **Deployments** with rollback tokens and drift, **Compliance** attestations, the tamper-evident **Flight Recorder**, the **AI Model** stack, and **Run History**. Recommended demo flow: start a run with auto-approve **off** (the default), then make the active/shadow/reject call from the browser — the Governor blocks on your decision and falls back to safe shadow deployment on timeout.
 
 ## Live mode (real Splunk)
 
-Set `AEGIS_MODE=live` and the **same nine agents** drive a real deployment. Copy [.env.example](.env.example) and fill in:
+Set `AEGIS_MODE=live` and the **same ten agents** drive a real deployment. Copy [.env.example](.env.example) and fill in:
 
 | Variable | Purpose |
 |---|---|
@@ -85,11 +86,20 @@ Set `AEGIS_MODE=live` and the **same nine agents** drive a real deployment. Copy
 
 Agentic ops without governance is a liability. Aegis Foundry treats trust as a feature:
 
-- **Evidence packs** — every proposal ships with the SPL diff, backtest table, forecast band, and 7 explicit policy checks (true-positive preservation, noise budget, blast-radius scan for destructive SPL, …). See a real one in [`runs/`](runs/) after any demo run.
+- **Evidence packs** — every proposal ships with the SPL diff, backtest table, forecast band, adversarial-robustness results, and **8 explicit policy checks** (true-positive preservation, noise budget, adversarial robustness, blast-radius scan for destructive SPL, …). See a real one in [`runs/`](runs/) after any demo run.
 - **Human-in-the-loop** — interactive approval with shadow-deploy as the safe default; `auto-approve` is an explicit demo/CI flag. This implements the human-oversight guidance from the Foundation-Sec model card.
 - **Shadow mode & rollback** — every deployment returns a rollback token; the Verifier auto-rolls back runaway rules (>10× budget).
-- **Flight recorder** — append-only JSONL audit of every agent decision, ingestible into the `aegis_audit` index and visualized in the bundled **Agent Flight Recorder** dashboard.
+- **Tamper-evident flight recorder** — append-only JSONL audit of every agent decision, **SHA-256 hash-chained** (each event binds the prior event's hash, so editing any past entry breaks the chain — `verify_audit_chain()` pinpoints where). Ingestible into the `aegis_audit` index and visualized in the bundled **Agent Flight Recorder** dashboard.
 - **Read/write separation** — agents read through MCP; the only write path (deployment) sits behind the Governor.
+
+## Beyond the baseline — four deep capabilities
+
+Most detection tooling stops at "the agent wrote a rule." Aegis Foundry goes further:
+
+- **Adversarial Robustness Gauntlet** (a 10th agent, the `HARDEN` stage) — backtest recall only measures the *past*. The Red-Team agent mutates each within-budget rule's labeled true positives into MITRE-faithful evasion variants and replays them against the rule's own SPL predicate, reporting **adversarial recall** and concrete hardening gaps. It feeds an 8th Governor policy check. [`agents/red_team.py`](aegis_foundry/agents/red_team.py), [`core/spl_match.py`](aegis_foundry/core/spl_match.py)
+- **ROI ledger** — converts the run's *measured* numbers (noise avoided, detections shipped, time-to-coverage) into analyst-hours, dollars, and MTTD-days saved (~**$295k/yr** on the demo). [`core/roi.py`](aegis_foundry/core/roi.py)
+- **Tamper-evident audit ledger** — the flight recorder is a verifiable hash chain. [`state.py`](aegis_foundry/state.py) `verify_audit_chain()`, exposed at `GET /api/runs/{id}/audit`.
+- **Compliance attestation** — maps each forged technique to NIST 800-53 and CIS Controls v8 safeguards for an auditor-facing record. [`core/compliance.py`](aegis_foundry/core/compliance.py)
 
 ## Architecture
 
@@ -97,14 +107,16 @@ See **[architecture_diagram.md](architecture_diagram.md)** (required diagrams + 
 
 ```
 aegis_foundry/          the platform
-  agents/               the nine agents (intel_scout ... verifier)
-  core/                 MCP client, hosted models, LLM clients, audit, memory, factory
+  agents/               the ten agents (intel_scout ... red_team ... verifier)
+  core/                 MCP client, hosted models, LLM clients, audit, memory,
+                        roi, compliance, spl_match, factory
   orchestrator.py       the lifecycle state machine
-  cli.py                run | audit | heatmap
+  web/                  stdlib console server + the eleven-view dashboard
+  cli.py                run | audit | heatmap | ui
 demo/                   offline golden path + synthetic BOTS-style labeled corpus
 splunk_app/             installable Splunk app (dashboards, alert action, conf)
 scripts/package_app.py  builds dist/aegis_foundry.spl
-tests/                  21 tests incl. the full e2e storyline
+tests/                  39 tests incl. the full e2e storyline + deep-feature suites
 ```
 
 ## Submission

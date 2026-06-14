@@ -1,6 +1,6 @@
 # Aegis Foundry — Architecture
 
-How the nine-agent detection-engineering pipeline interacts with Splunk, how the AI models are
+How the ten-agent detection-engineering pipeline interacts with Splunk, how the AI models are
 integrated, and how data flows between components.
 
 ## System overview
@@ -18,9 +18,10 @@ graph TD
         BE[4 Backtest Engineer]
         NF[5 Noise Forecaster]
         TO[6 Tuning Optimizer]
-        GOV[7 Governor<br/>7 policy checks + evidence pack]
-        DEP[8 Deployer]
-        VER[9 Verifier]
+        RT[7 Red-Team<br/>evasion-variant gauntlet]
+        GOV[8 Governor<br/>8 policy checks + evidence pack]
+        DEP[9 Deployer]
+        VER[10 Verifier]
     end
 
     subgraph "Splunk platform"
@@ -42,7 +43,7 @@ graph TD
 
     ADV --> IS --> CC --> DA --> BE --> NF --> TO
     TO -- "over budget: new version" --> BE
-    TO -- "within budget" --> GOV
+    TO -- "within budget" --> RT --> GOV
     GOV --- HUMAN
     GOV --> DEP --> VER
     VER -- "drift: retune" --> BE
@@ -52,6 +53,7 @@ graph TD
     BE <--> MCP
     VER <--> MCP
     DA <--> MCP
+    RT <--> MCP
     MCP <--> IDX
     DA -.-> SAIA
     CC -.-> FSEC
@@ -60,7 +62,7 @@ graph TD
     NF -.-> CDTSM
     CDTSM -.-> MCP
     DEP --> REST --> SS
-    IS & CC & DA & BE & NF & TO & GOV & DEP & VER -- "audit events" --> FR[flight_recorder.jsonl]
+    IS & CC & DA & BE & NF & TO & RT & GOV & DEP & VER -- "audit events (hash-chained)" --> FR[flight_recorder.jsonl]
     FR --> IDX --> DASH
 ```
 
@@ -74,6 +76,7 @@ sequenceDiagram
     participant Back as Backtest Engineer
     participant Fore as Noise Forecaster
     participant Tune as Tuning Optimizer
+    participant Red as Red-Team
     participant Gov as Governor
     participant Hum as Human
     participant Dep as Deployer
@@ -92,14 +95,17 @@ sequenceDiagram
     Tune->>Back: rule v2 (+EncodedCommand, -svc_deploy)
     Back->>Spl: replay v2 (MCP)
     Back->>Fore: 42 hits, recall 17/17, precision 40%
-    Fore->>Gov: predicted 2.7/wk - WITHIN BUDGET
-    Gov->>Hum: evidence pack (SPL diff, stats, 7 policy checks)
+    Fore->>Red: predicted 2.7/wk - WITHIN BUDGET
+    Red->>Spl: replay 24 evasion variants (MCP)
+    Red->>Gov: 21/24 caught - 88% adversarial recall
+    Gov->>Hum: evidence pack (SPL diff, stats, gauntlet, 8 policy checks)
     Hum->>Gov: approve [a]ctive
     Gov->>Dep: APPROVE_ACTIVE
     Dep->>Spl: create saved search (REST) + rollback token
     Ver->>Spl: observe first week (MCP)
     Ver->>Ver: observed 3.0/wk vs forecast 2.7/wk - drift 1.11, in band
-    Ver-->>Spl: status VERIFIED -> heatmap flips to COVERED BY AEGIS
+    Ver-->>Spl: status VERIFIED -> heatmap flips to FORGED BY AEGIS
+    Note over Gov,Ver: run closes with ROI ledger (~$295k/yr) + NIST/CIS attestation
 ```
 
 ## Deployment modes and the audit path
@@ -115,7 +121,7 @@ graph LR
         B1 --> B3["fallback-ewma forecaster<br/>(honestly labeled in every artifact)"]
     end
     subgraph "Audit path (both modes)"
-        C1[9 agents] --> C2[flight_recorder.jsonl] --> C3[(aegis_audit index)] --> C4[Flight Recorder dashboard]
+        C1[10 agents] --> C2[flight_recorder.jsonl<br/>SHA-256 hash-chained] --> C3[(aegis_audit index)] --> C4[Flight Recorder dashboard]
     end
 ```
 
@@ -126,10 +132,11 @@ graph LR
 3. **Author** — Detection Author drafts SPL (gpt-oss / `saia_generate_spl`), then validates syntax through MCP and self-corrects on parser errors.
 4. **Measure** — Backtest Engineer replays the rule over labeled history (`botsv3`) via MCP and computes hits, precision, recall, and a continuous daily hit timeline. Noise Forecaster feeds that series to **CDTSM** (`| apply CDTSM`, or the labeled EWMA fallback) and converts the 14-day forecast into a predicted weekly alert rate vs. the false-positive budget.
 5. **Tune** — over-budget rules go back to the Tuning Optimizer for a tightened version; the loop re-measures until within budget or attempts are exhausted.
-6. **Govern** — the Governor runs 7 policy checks, writes the evidence pack, and gates on a human decision (active / shadow / reject).
-7. **Deploy** — the Deployer creates the saved search through the **management REST API** with a rollback token; shadow deployments track without alerting.
-8. **Verify** — the Verifier compares the first post-deploy week against the forecast band; drift triggers a re-tune, runaway noise triggers automatic rollback.
-9. **Audit** — every step lands in the flight recorder (JSONL → `aegis_audit` index → dashboards): the agents are observable in Splunk itself.
+6. **Harden** — the Red-Team agent mutates each within-budget rule's labeled true positives into MITRE-faithful evasion variants (case folding, flag aliasing, whitespace/argument tricks, payload swaps), replays them through MCP, and reports adversarial recall; the result becomes an 8th Governor policy check.
+7. **Govern** — the Governor runs 8 policy checks, writes the evidence pack (now including the gauntlet results), and gates on a human decision (active / shadow / reject).
+8. **Deploy** — the Deployer creates the saved search through the **management REST API** with a rollback token; shadow deployments track without alerting.
+9. **Verify** — the Verifier compares the first post-deploy week against the forecast band; drift triggers a re-tune, runaway noise triggers automatic rollback.
+10. **Account** — the run computes an ROI ledger (analyst-hours and dollars saved) and a NIST 800-53 / CIS Controls attestation; every step lands in the SHA-256 hash-chained flight recorder (JSONL → `aegis_audit` index → dashboards), so the agents are observable *and provable* in Splunk itself.
 
 ## Trust boundaries
 
