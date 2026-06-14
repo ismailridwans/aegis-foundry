@@ -41,6 +41,7 @@ class PipelineStage(str, Enum):
     BACKTEST = "backtest"
     FORECAST = "forecast"
     TUNE = "tune"
+    HARDEN = "harden"
     GOVERN = "govern"
     DEPLOY = "deploy"
     VERIFY = "verify"
@@ -276,8 +277,150 @@ class VerificationResult:
 
 
 @dataclass
+class EvasionVariant:
+    """One adversarial mutation of a labeled attack event, and whether the rule caught it."""
+
+    variant_id: str
+    technique_id: str
+    mutation: str  # human-readable description, e.g. "flag alias -e for -EncodedCommand"
+    fired: bool  # did the rule's SPL still match the mutated event?
+    base_event_ref: str = ""  # identifier of the seed malicious event
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "EvasionVariant":
+        return cls(**d)
+
+
+@dataclass
+class RobustnessResult:
+    """Outcome of the Red-Team Gauntlet: does the rule survive evasion attempts?
+
+    Backtest recall only measures the past. The Red-Team agent mutates each
+    labeled attack into MITRE-faithful evasion variants (case folding, flag
+    aliases, whitespace/quoting tricks) and replays them; ``adversarial_recall``
+    is the fraction the rule still fires on.
+    """
+
+    rule_id: str
+    rule_version: int
+    variants_total: int
+    variants_caught: int
+    adversarial_recall: float
+    missed_mutations: list[str] = field(default_factory=list)
+    variants: list[EvasionVariant] = field(default_factory=list)
+    model: str = "mock-redteam"
+    evaluated_at: str = field(default_factory=iso_now)
+
+    def to_dict(self) -> dict[str, Any]:
+        d = asdict(self)
+        d["variants"] = [v.to_dict() for v in self.variants]
+        return d
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "RobustnessResult":
+        d = dict(d)
+        d["variants"] = [EvasionVariant.from_dict(v) for v in d.get("variants", [])]
+        return cls(**d)
+
+
+@dataclass
+class RoiModel:
+    """Configurable economic assumptions used to value a run's noise reduction."""
+
+    analyst_hourly_cost: float = 75.0  # fully-loaded SOC analyst cost / hour
+    triage_minutes_per_alert: float = 10.0  # avg minutes to triage one alert
+    manual_engineering_days_per_detection: float = 5.0  # author+backtest+tune+review by hand
+    engineer_daily_cost: float = 600.0  # detection engineer cost / day
+    weeks_per_year: float = 52.0
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "RoiModel":
+        return cls(**d)
+
+
+@dataclass
+class RoiResult:
+    """The run's quantified economic impact, derived from measured pipeline numbers."""
+
+    alerts_avoided_weekly: float
+    analyst_hours_saved_weekly: float
+    analyst_hours_saved_annual: float
+    annualized_dollars_saved: float  # recurring analyst cost avoided
+    detections_shipped: int
+    engineering_days_saved: float
+    engineering_dollars_saved: float  # one-time authoring cost avoided
+    mttd_days_saved: float  # coverage delivered this many days sooner
+    total_annual_value: float
+    model: RoiModel = field(default_factory=RoiModel)
+    computed_at: str = field(default_factory=iso_now)
+
+    def to_dict(self) -> dict[str, Any]:
+        d = asdict(self)
+        d["model"] = self.model.to_dict()
+        return d
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "RoiResult":
+        d = dict(d)
+        d["model"] = RoiModel.from_dict(d.get("model", {}))
+        return cls(**d)
+
+
+@dataclass
+class ComplianceControl:
+    """One security-control-framework mapping for a covered ATT&CK technique."""
+
+    framework: str  # "NIST 800-53" | "CIS Controls v8"
+    control_id: str  # "SI-4" | "8.11"
+    control_name: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "ComplianceControl":
+        return cls(**d)
+
+
+@dataclass
+class ComplianceAttestation:
+    """Auditor-facing record: which framework controls a deployed detection satisfies."""
+
+    technique_id: str
+    technique_name: str
+    rule_id: str
+    saved_search_name: str
+    controls: list[ComplianceControl] = field(default_factory=list)
+    attested_at: str = field(default_factory=iso_now)
+
+    def to_dict(self) -> dict[str, Any]:
+        d = asdict(self)
+        d["controls"] = [c.to_dict() for c in self.controls]
+        return d
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "ComplianceAttestation":
+        d = dict(d)
+        d["controls"] = [ComplianceControl.from_dict(c) for c in d.get("controls", [])]
+        return cls(**d)
+
+
+@dataclass
 class AuditEvent:
-    """One immutable entry in the agent flight recorder."""
+    """One entry in the agent flight recorder.
+
+    The recorder is a tamper-evident hash chain: every event carries the
+    SHA-256 of the event before it (``prev_hash``) and its own content hash
+    (``event_hash``). Editing any past event breaks the chain from that point
+    on, which :meth:`PipelineState.verify_audit_chain` detects. Both fields
+    default to empty so older fixtures still load.
+    """
 
     ts: str
     agent: str
@@ -285,6 +428,27 @@ class AuditEvent:
     detail: dict[str, Any] = field(default_factory=dict)
     run_id: str = ""
     seq: int = 0
+    prev_hash: str = ""
+    event_hash: str = ""
+
+    def content_hash(self) -> str:
+        """Deterministic SHA-256 over the event body + the prior hash.
+
+        Excludes ``event_hash`` itself; includes ``prev_hash`` so the digest
+        binds each event to its predecessor (a true chain, not just per-row
+        checksums). Canonical JSON keeps it stable across processes.
+        """
+        payload = {
+            "ts": self.ts,
+            "agent": self.agent,
+            "action": self.action,
+            "detail": self.detail,
+            "run_id": self.run_id,
+            "seq": self.seq,
+            "prev_hash": self.prev_hash,
+        }
+        canonical = json.dumps(payload, sort_keys=True, default=str)
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -312,8 +476,11 @@ class PipelineState:
     backtests: dict[str, BacktestResult] = field(default_factory=dict)  # keyed rule_id
     forecasts: dict[str, ForecastResult] = field(default_factory=dict)
     decisions: dict[str, GovernanceDecision] = field(default_factory=dict)
+    robustness: dict[str, RobustnessResult] = field(default_factory=dict)  # keyed rule_id
     deployments: dict[str, DeploymentRecord] = field(default_factory=dict)
     verifications: dict[str, VerificationResult] = field(default_factory=dict)
+    compliance: list[ComplianceAttestation] = field(default_factory=list)
+    roi: Optional[RoiResult] = None
     # Run controls
     fp_budget_weekly: float = 25.0  # max acceptable expected alerts/week per rule
     max_tuning_iterations: int = 3
@@ -329,6 +496,7 @@ class PipelineState:
         self.rules[rule.rule_id] = rule
 
     def add_audit(self, agent: str, action: str, detail: Optional[dict[str, Any]] = None) -> AuditEvent:
+        prev_hash = self.audit[-1].event_hash if self.audit else "0" * 64
         evt = AuditEvent(
             ts=iso_now(),
             agent=agent,
@@ -336,9 +504,32 @@ class PipelineState:
             detail=detail or {},
             run_id=self.run_id,
             seq=len(self.audit) + 1,
+            prev_hash=prev_hash,
         )
+        evt.event_hash = evt.content_hash()
         self.audit.append(evt)
         return evt
+
+    def verify_audit_chain(self) -> tuple[bool, Optional[int]]:
+        """Re-walk the audit chain; return (intact, first_broken_seq).
+
+        Recomputes every event's hash from its body + the prior event's hash.
+        Returns ``(True, None)`` when the chain is intact, or ``(False, seq)``
+        pointing at the first event whose stored or linked hash does not match
+        — i.e. the earliest place the trail was tampered with. Empty trails and
+        legacy (un-hashed) trails are treated as intact.
+        """
+        prev = "0" * 64
+        for evt in self.audit:
+            if not evt.event_hash:  # legacy event without a chain; skip strictly
+                prev = evt.event_hash
+                continue
+            if evt.prev_hash != prev:
+                return False, evt.seq
+            if evt.content_hash() != evt.event_hash:
+                return False, evt.seq
+            prev = evt.event_hash
+        return True, None
 
     def state_hash(self) -> str:
         return hashlib.sha256(
@@ -358,8 +549,11 @@ class PipelineState:
             "backtests": {k: v.to_dict() for k, v in self.backtests.items()},
             "forecasts": {k: v.to_dict() for k, v in self.forecasts.items()},
             "decisions": {k: v.to_dict() for k, v in self.decisions.items()},
+            "robustness": {k: v.to_dict() for k, v in self.robustness.items()},
             "deployments": {k: v.to_dict() for k, v in self.deployments.items()},
             "verifications": {k: v.to_dict() for k, v in self.verifications.items()},
+            "compliance": [c.to_dict() for c in self.compliance],
+            "roi": self.roi.to_dict() if self.roi is not None else None,
             "fp_budget_weekly": self.fp_budget_weekly,
             "max_tuning_iterations": self.max_tuning_iterations,
             "auto_approve": self.auto_approve,
@@ -388,10 +582,18 @@ class PipelineState:
         st.backtests = {k: BacktestResult.from_dict(v) for k, v in d.get("backtests", {}).items()}
         st.forecasts = {k: ForecastResult.from_dict(v) for k, v in d.get("forecasts", {}).items()}
         st.decisions = {k: GovernanceDecision.from_dict(v) for k, v in d.get("decisions", {}).items()}
+        st.robustness = {
+            k: RobustnessResult.from_dict(v) for k, v in d.get("robustness", {}).items()
+        }
         st.deployments = {k: DeploymentRecord.from_dict(v) for k, v in d.get("deployments", {}).items()}
         st.verifications = {
             k: VerificationResult.from_dict(v) for k, v in d.get("verifications", {}).items()
         }
+        st.compliance = [
+            ComplianceAttestation.from_dict(c) for c in d.get("compliance", [])
+        ]
+        roi_raw = d.get("roi")
+        st.roi = RoiResult.from_dict(roi_raw) if roi_raw else None
         st.audit = [AuditEvent.from_dict(a) for a in d.get("audit", [])]
         return st
 

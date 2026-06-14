@@ -41,9 +41,13 @@ from aegis_foundry.state import (
     PipelineStage,
     PipelineState,
     PolicyCheck,
+    RobustnessResult,
     RuleStatus,
     iso_now,
 )
+
+#: Minimum adversarial recall (Red-Team gauntlet) required to pass governance.
+_ROBUSTNESS_THRESHOLD = 0.75
 
 #: Destructive / data-exfiltrating SPL commands a detection rule must never
 #: contain. Matched case-insensitively after a pipe, tolerating whitespace.
@@ -93,12 +97,13 @@ class Governor(Agent):
     ) -> None:
         """Run policy checks, write the evidence pack, and record a decision."""
         backtest = state.backtests.get(rule.rule_id)
-        checks = self._build_policy_checks(rule, backtest, forecast)
+        robustness = state.robustness.get(rule.rule_id)
+        checks = self._build_policy_checks(rule, backtest, forecast, robustness)
         failed = [c for c in checks if not c.passed]
 
         rationale = self._analyst_rationale(rule, backtest, forecast)
         evidence_path = self._write_evidence_pack(
-            state, rule, backtest, forecast, checks, rationale
+            state, rule, backtest, forecast, checks, rationale, robustness
         )
 
         if failed:
@@ -284,6 +289,7 @@ class Governor(Agent):
         rule: DetectionRule,
         backtest: Optional[BacktestResult],
         forecast: ForecastResult,
+        robustness: Optional[RobustnessResult] = None,
     ) -> list[PolicyCheck]:
         """Evaluate every governance policy against the rule and its evidence."""
         checks: list[PolicyCheck] = []
@@ -376,6 +382,21 @@ class Governor(Agent):
                 ),
             )
         )
+
+        if robustness is not None and robustness.variants_total > 0:
+            rob_ok = robustness.adversarial_recall >= _ROBUSTNESS_THRESHOLD
+            missed = ", ".join(robustness.missed_mutations) if robustness.missed_mutations else "none"
+            rob_detail = (
+                f"caught {robustness.variants_caught}/{robustness.variants_total} evasion variants "
+                f"(adversarial recall {robustness.adversarial_recall:.0%}, "
+                f"threshold {_ROBUSTNESS_THRESHOLD:.0%}); missed: {missed}"
+            )
+        else:
+            rob_ok = True
+            rob_detail = "no labeled attack samples available to red-team (gauntlet skipped)"
+        checks.append(
+            PolicyCheck(name="adversarial-robustness", passed=rob_ok, detail=rob_detail)
+        )
         return checks
 
     # ------------------------------------------------------------------
@@ -390,6 +411,7 @@ class Governor(Agent):
         forecast: ForecastResult,
         checks: list[PolicyCheck],
         rationale: str,
+        robustness: Optional[RobustnessResult] = None,
     ) -> str:
         """Render the markdown evidence pack and return its path (POSIX style)."""
         evidence_dir = Path(self.ctx.config.runs_dir) / state.run_id / "evidence"
@@ -474,6 +496,27 @@ class Governor(Agent):
             f"{forecast.fp_budget_weekly:.1f}/week budget)"
         )
         lines.append("")
+
+        if robustness is not None and robustness.variants_total > 0:
+            lines.append("## Adversarial Robustness (Red-Team Gauntlet)")
+            lines.append("")
+            lines.append(f"- **Model:** {robustness.model}")
+            lines.append(
+                f"- **Evasion variants caught:** {robustness.variants_caught}/"
+                f"{robustness.variants_total}"
+            )
+            lines.append(
+                f"- **Adversarial recall:** {robustness.adversarial_recall:.0%} "
+                f"(threshold {_ROBUSTNESS_THRESHOLD:.0%})"
+            )
+            if robustness.missed_mutations:
+                lines.append(
+                    "- **Hardening opportunities (evaded):** "
+                    + ", ".join(robustness.missed_mutations)
+                )
+            else:
+                lines.append("- **Hardening opportunities (evaded):** none")
+            lines.append("")
 
         lines.append("## Policy Checks")
         lines.append("")

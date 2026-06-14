@@ -39,10 +39,13 @@ from aegis_foundry.agents.detection_author import DetectionAuthor
 from aegis_foundry.agents.governor import Governor
 from aegis_foundry.agents.intel_scout import IntelScout
 from aegis_foundry.agents.noise_forecaster import NoiseForecaster
+from aegis_foundry.agents.red_team import RedTeam
 from aegis_foundry.agents.tuning_optimizer import TuningOptimizer
 from aegis_foundry.agents.verifier import Verifier
 from aegis_foundry.config import AppConfig
+from aegis_foundry.core.compliance import build_attestations
 from aegis_foundry.core.factory import build_context
+from aegis_foundry.core.roi import compute_roi
 from aegis_foundry.state import (
     Decision,
     DetectionRule,
@@ -182,6 +185,7 @@ class Orchestrator:
         self.backtest_engineer = BacktestEngineer(self.ctx)
         self.noise_forecaster = NoiseForecaster(self.ctx)
         self.tuning_optimizer = TuningOptimizer(self.ctx)
+        self.red_team = RedTeam(self.ctx)
         self.governor = Governor(self.ctx)
         self.deployer = Deployer(self.ctx)
         self.verifier = Verifier(self.ctx)
@@ -193,6 +197,7 @@ class Orchestrator:
             self.backtest_engineer,
             self.noise_forecaster,
             self.tuning_optimizer,
+            self.red_team,
             self.governor,
             self.deployer,
             self.verifier,
@@ -263,6 +268,9 @@ class Orchestrator:
         if not self._measurement_loop():
             return False
 
+        if not self._run_agent(self.red_team, PipelineStage.HARDEN,
+                               self._desc_harden()):
+            return False
         if not self._run_agent(self.governor, PipelineStage.GOVERN,
                                self._desc_govern()):
             return False
@@ -283,6 +291,9 @@ class Orchestrator:
             self._audit("retune_pass_started", {"rules": retune_ids})
             if not self._measurement_loop(label="retune"):
                 return False
+            if not self._run_agent(self.red_team, PipelineStage.HARDEN,
+                                   self._desc_harden()):
+                return False
             if not self._run_agent(self.governor, PipelineStage.GOVERN,
                                    self._desc_govern()):
                 return False
@@ -290,9 +301,33 @@ class Orchestrator:
                                    self._desc_deploy()):
                 return False
 
+        self._finalize_impact()
         self.state.stage = PipelineStage.DONE
         self._save()
         return True
+
+    def _finalize_impact(self) -> None:
+        """Compute the run's ROI ledger and compliance attestation from final state."""
+        try:
+            self.state.roi = compute_roi(self.state)
+            roi = self.state.roi
+            self._audit("roi_computed", {
+                "alerts_avoided_weekly": roi.alerts_avoided_weekly,
+                "annualized_dollars_saved": roi.annualized_dollars_saved,
+                "total_annual_value": roi.total_annual_value,
+                "detections_shipped": roi.detections_shipped,
+            })
+        except Exception as exc:  # noqa: BLE001 - impact is advisory, never fatal
+            self.state.errors.append(f"[orchestrator] ROI computation failed: {exc}")
+        try:
+            self.state.compliance = build_attestations(self.state)
+            controls = sum(len(a.controls) for a in self.state.compliance)
+            self._audit("compliance_attested", {
+                "detections": len(self.state.compliance),
+                "controls_satisfied": controls,
+            })
+        except Exception as exc:  # noqa: BLE001 - attestation is advisory, never fatal
+            self.state.errors.append(f"[orchestrator] compliance mapping failed: {exc}")
 
     def _measurement_loop(self, label: str = "measurement") -> bool:
         """Run BACKTEST -> FORECAST -> TUNE passes until rules converge.
@@ -460,6 +495,12 @@ class Orchestrator:
             return (f"tuning {over} over-budget rule{_plural(over)} toward "
                     f"{self.state.fp_budget_weekly:g} alerts/week")
         return "verifying every rule sits within the noise budget"
+
+    def _desc_harden(self) -> str:
+        n = sum(1 for r in self.state.rules.values()
+                if r.status is RuleStatus.BACKTESTED and self._within_budget(r))
+        return (f"red-teaming {n} within-budget rule{_plural(n)} with MITRE-faithful "
+                "evasion variants")
 
     def _desc_govern(self) -> str:
         n = sum(1 for r in self.state.rules.values()

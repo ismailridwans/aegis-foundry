@@ -57,12 +57,15 @@ def test_governance_deploy_verify_chain(final_state, mock_config):
     rule_id = next(iter(final_state.rules))
     decision = final_state.decisions[rule_id]
     assert decision.decision is Decision.APPROVE_ACTIVE
-    assert len(decision.policy_checks) == 7
+    # 7 baseline policy checks + the adversarial-robustness gauntlet check.
+    assert len(decision.policy_checks) == 8
+    assert {c.name for c in decision.policy_checks} >= {"adversarial-robustness"}
     assert all(c.passed for c in decision.policy_checks)
     assert decision.evidence_pack_path
 
     evidence = open(decision.evidence_pack_path, encoding="utf-8").read()
     assert "Recall" in evidence
+    assert "Adversarial Robustness" in evidence
     assert final_state.rules[rule_id].spl in evidence
 
     deployment = final_state.deployments[rule_id]
