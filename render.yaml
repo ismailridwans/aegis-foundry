@@ -1,0 +1,28 @@
+# Render Blueprint for Aegis Foundry — one-click deploy of the full live console.
+#
+# Render runs the real Python server (long-lived process), so the entire
+# 10-agent pipeline works live: start runs and resolve governance approvals
+# right in the browser. The console boots in offline "mock" mode (no Splunk
+# credentials needed); flip AEGIS_MODE to "live" and add the Splunk env vars
+# from .env.example to drive a real deployment.
+#
+# Deploy: push this repo to GitHub, then in the Render dashboard choose
+# "New +" -> "Blueprint" and point it at the repo. Render reads this file.
+services:
+  - type: web
+    name: aegis-foundry
+    runtime: python
+    plan: free
+    region: oregon
+    # Install the package, then seed one completed demo run so the console
+    # shows real data (ROI, gauntlet, coverage, audit chain) on first load.
+    buildCommand: "pip install -e . && python demo/run_pipeline.py --auto-approve"
+    # Bind all interfaces on Render's assigned $PORT (picked up by --port's default).
+    startCommand: "python -m aegis_foundry.cli ui --host 0.0.0.0 --mode mock"
+    healthCheckPath: /api/pipeline/status
+    autoDeploy: true
+    envVars:
+      - key: AEGIS_MODE
+        value: mock
+      - key: PYTHON_VERSION
+        value: "3.12"

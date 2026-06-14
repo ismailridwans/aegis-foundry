@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -329,10 +330,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     ui_p = sub.add_parser(
         "ui", help="serve the web console (runs browser + browser approvals)")
-    ui_p.add_argument("--port", type=int, default=8787,
-                      help="TCP port to listen on (default: 8787)")
+    ui_p.add_argument("--port", type=int, default=int(os.environ.get("PORT") or 8787),
+                      help="TCP port to listen on (default: $PORT or 8787)")
     ui_p.add_argument("--host", default="127.0.0.1",
-                      help="interface to bind (default: 127.0.0.1)")
+                      help="interface to bind (default: 127.0.0.1; use 0.0.0.0 to host)")
     ui_p.add_argument("--mode", choices=("mock", "live"), default=None,
                       help="override AEGIS_MODE (mock = offline fixtures)")
     ui_p.add_argument("--fp-budget", type=float, default=None,
