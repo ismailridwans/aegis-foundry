@@ -152,6 +152,13 @@ def test_auto_approved_run_via_api(console: ConsoleServer):
     assert evidence and evidence[0]["version"] == 2
     assert "Recall" in evidence[0]["markdown"]
 
+    # The tamper-evident audit chain verifies intact over HTTP.
+    status, audit = _get_json(f"{base}/api/runs/{run_id}/audit")
+    assert status == 200
+    assert audit["chain_ok"] is True
+    assert audit["broken_seq"] is None
+    assert audit["count"] > 0
+
 
 # --------------------------------------------------------------------------
 # (c) Full web approval path: pipeline blocks until the browser decides

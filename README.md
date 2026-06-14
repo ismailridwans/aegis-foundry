@@ -3,6 +3,7 @@
 **The SOC that maintains itself.** An autonomous detection-engineering platform for Splunk: ten governed AI agents that find MITRE ATT&CK coverage gaps, author SPL detections, **backtest them against labeled history via the Splunk MCP Server**, **forecast their alert-noise burden with the Cisco Deep Time Series Model before deployment**, tune them to a false-positive budget, **red-team them against MITRE-faithful evasion variants**, route them through human approval with a full evidence pack, deploy them as native Splunk saved searches — then verify that reality matched the forecast, **quantify the dollar impact**, and **attest the framework controls** they satisfy. Every agent action is recorded in a **tamper-evident, hash-chained audit ledger**.
 
 ![CI](../../actions/workflows/ci.yml/badge.svg)
+🚀 **Live demo:** [aegis-foundry.onrender.com](https://aegis-foundry.onrender.com) — landing at `/`, the full live console at `/console` (free tier; first load after idle wakes in ~30–60s). One-click redeploy from [`render.yaml`](render.yaml).
 **Track:** Security · **Built for the Splunk Agentic Ops Hackathon**
 
 ---
@@ -22,8 +23,8 @@ One offline run of `demo/run_pipeline.py` reproduces this end-to-end:
 1. **Intel Scout** ingests a threat advisory (encoded-PowerShell credential theft, CISA-AA26-117A) → extracts **T1059.001** and **T1003.001**.
 2. **Coverage Cartographer** inventories the existing saved searches via MCP → T1003.001 is covered, **T1059.001 is a gap**.
 3. **Detection Author** drafts a detection, self-correcting its SPL against live syntax validation.
-4. **Backtest Engineer** replays it over 90 days of labeled history via the MCP search plane: **5,818 hits (~382/week)** — recall 100%, precision 0.3%.
-5. **Noise Forecaster** forecasts the rule's future fire-rate: **massively over the 25-alerts/week budget**.
+4. **Backtest Engineer** replays it over 90 days of labeled history via the MCP search plane: **5,818 hits (~452/week observed)** — recall 100%, precision 0.3%.
+5. **Noise Forecaster** forecasts the rule's future fire-rate at **~382/week — massively over the 25-alerts/week budget**.
 6. **Tuning Optimizer** tightens the rule (encoded-command flag, excludes the automation account) → re-backtest: **42 hits (~2.7/week predicted), all 17/17 labeled true positives retained**, precision 40%.
 7. **Red-Team** mutates the labeled attacks into 24 MITRE-faithful evasion variants (case folding, flag aliasing, whitespace tricks, payload swaps) and replays them: **21/24 still fire — 88% adversarial recall.** The one gap (the `-enc` abbreviation) is flagged as a hardening opportunity.
 8. **Governor** runs **8 policy checks** (now including adversarial robustness), writes a Markdown **evidence pack** (SPL diff, backtest table, forecast verdict, gauntlet results), and asks a human — or auto-approves in demo mode.
@@ -96,7 +97,7 @@ Agentic ops without governance is a liability. Aegis Foundry treats trust as a f
 
 Most detection tooling stops at "the agent wrote a rule." Aegis Foundry goes further:
 
-- **Adversarial Robustness Gauntlet** (a 10th agent, the `HARDEN` stage) — backtest recall only measures the *past*. The Red-Team agent mutates each within-budget rule's labeled true positives into MITRE-faithful evasion variants and replays them against the rule's own SPL predicate, reporting **adversarial recall** and concrete hardening gaps. It feeds an 8th Governor policy check. [`agents/red_team.py`](aegis_foundry/agents/red_team.py), [`core/spl_match.py`](aegis_foundry/core/spl_match.py)
+- **Adversarial Robustness Gauntlet** (a 10th agent, the `HARDEN` stage) — backtest recall only measures the *past*. The Red-Team agent mutates each within-budget rule's labeled true positives into MITRE-faithful evasion variants and replays them against the rule's own SPL predicate, reporting **adversarial recall** and concrete hardening gaps. It feeds an 8th Governor policy check. The mutation battery currently targets PowerShell/process-execution TTPs (the demo's T1059.001); it is structured to extend per technique, and a rule with no labeled samples is recorded as *not evaluated* rather than a silent pass. [`agents/red_team.py`](aegis_foundry/agents/red_team.py), [`core/spl_match.py`](aegis_foundry/core/spl_match.py)
 - **ROI ledger** — converts the run's *measured* numbers (noise avoided, detections shipped, time-to-coverage) into analyst-hours, dollars, and MTTD-days saved (~**$295k/yr** on the demo). [`core/roi.py`](aegis_foundry/core/roi.py)
 - **Tamper-evident audit ledger** — the flight recorder is a verifiable hash chain. [`state.py`](aegis_foundry/state.py) `verify_audit_chain()`, exposed at `GET /api/runs/{id}/audit`.
 - **Compliance attestation** — maps each forged technique to NIST 800-53 and CIS Controls v8 safeguards for an auditor-facing record. [`core/compliance.py`](aegis_foundry/core/compliance.py)

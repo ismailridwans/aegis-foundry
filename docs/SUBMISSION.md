@@ -10,7 +10,7 @@ Everything needed to submit in under 30 minutes. Deadline: **June 15, 2026, 9:00
 
 **Elevator pitch (2 sentences):**
 
-> Aegis Foundry is an autonomous detection-engineering platform for Splunk: ten governed AI agents find MITRE ATT&CK coverage gaps, author SPL detections, backtest them against labeled history via the Splunk MCP Server, forecast their alert-noise cost with the Cisco Deep Time Series Model, red-team them against evasion variants, and deploy them only after a human approves the evidence pack. It attacks alert fatigue at its source — untuned detection logic upstream — and proves it with real numbers: a forecast of 382.3 alerts/week tuned down to 2.7 with all 17 labeled true positives retained, 88% adversarial recall against evasion, then verified against reality after deployment — quantified at ~$295k/year of analyst time saved.
+> Aegis Foundry is an autonomous detection-engineering platform for Splunk: ten governed AI agents find MITRE ATT&CK coverage gaps, author SPL detections, backtest them against labeled history via the Splunk MCP Server, forecast their alert-noise cost with the Cisco Deep Time Series Model, red-team them against evasion variants, and deploy them only after a human approves the evidence pack. It attacks alert fatigue at its source — untuned detection logic upstream — and proves it with real numbers: a rule firing 5,818 times over 90 days (~452/week) tuned down to a forecast 2.7/week with all 17 labeled true positives retained, 88% adversarial recall against evasion, then verified against reality after deployment — quantified at ~$295k/year of analyst time saved.
 
 ---
 

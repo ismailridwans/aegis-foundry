@@ -124,7 +124,7 @@
     <div class="topbar-controls">
       <label class="run-picker" title="Choose which run to inspect">
         <span class="rp-label">run</span>
-        <select id="run-select" class="run-select mono"><option value="">live · newest</option></select>
+        <select id="run-select" class="run-select mono" aria-label="Select pipeline run to inspect"><option value="">live · newest</option></select>
       </label>
       <span id="stage-indicator" class="stage-indicator mono" hidden></span>
       <span id="mode-pill" class="pill pill-idle">IDLE</span>
@@ -179,7 +179,7 @@
     <!-- =============================================================== PIPELINE -->
     <section class="view" data-view="pipeline" id="view-pipeline">
       <section class="panel glass" aria-label="Agent pipeline">
-        <div class="panel-head"><h2>Nine-Agent Lifecycle</h2><span id="pipeline-run" class="panel-tag mono"></span></div>
+        <div class="panel-head"><h2>Ten-Agent Lifecycle</h2><span id="pipeline-run" class="panel-tag mono"></span></div>
         <ol id="stepper-full" class="stepper stepper-wide"></ol>
       </section>
       <div class="agent-grid" id="agent-grid"></div>
@@ -263,7 +263,7 @@
           <h2>Agent Flight Recorder</h2>
           <div class="ft-controls">
             <span id="audit-badge" class="audit-badge" hidden></span>
-            <select id="flight-filter" class="run-select mono"><option value="">all agents</option></select>
+            <select id="flight-filter" class="run-select mono" aria-label="Filter flight recorder by agent"><option value="">all agents</option></select>
             <span id="flight-count" class="panel-tag mono"></span>
           </div>
         </div>

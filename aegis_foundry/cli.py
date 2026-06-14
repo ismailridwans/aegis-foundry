@@ -263,7 +263,7 @@ def cmd_heatmap(args: argparse.Namespace) -> int:
         for tid in tids:
             name, _ = resolve(tid)
             if tid in aegis_cover:
-                tag, color = "[COVERED BY AEGIS]", "cyan"
+                tag, color = "[FORGED BY AEGIS]", "cyan"
                 info = aegis_cover[tid]
                 via = f"via '{info['search']}'"
                 if info["mode"]:

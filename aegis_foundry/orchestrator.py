@@ -45,7 +45,7 @@ from aegis_foundry.agents.verifier import Verifier
 from aegis_foundry.config import AppConfig
 from aegis_foundry.core.compliance import build_attestations
 from aegis_foundry.core.factory import build_context
-from aegis_foundry.core.roi import compute_roi
+from aegis_foundry.core.roi import compute_roi, v1_weekly_for_rule
 from aegis_foundry.state import (
     Decision,
     DetectionRule,
@@ -564,12 +564,14 @@ class Orchestrator:
             print(f"\n   {paint(rule.name, 'bold')}  [{rid}]")
             print(f"     versions tried:  {chain}")
 
-            fh = self._forecast_history.get(rid, {})
-            v1_noise = fh.get(1)
+            v1_observed = v1_weekly_for_rule(st, rid)  # observed v1 backtest rate (matches console + ROI)
+            v1_forecast = self._forecast_history.get(rid, {}).get(1)  # v1 forecast that tripped the gate
             final_fc = st.forecasts.get(rid)
             final_noise = final_fc.predicted_weekly_alerts if final_fc else None
-            v1_txt = f"{v1_noise:.1f}/wk" if v1_noise is not None else "n/a"
-            fin_txt = f"{final_noise:.1f}/wk" if final_noise is not None else "n/a"
+            v1_txt = f"{v1_observed:.1f}/wk observed" if v1_observed is not None else "n/a"
+            if v1_forecast is not None:
+                v1_txt += f" (forecast {v1_forecast:.1f})"
+            fin_txt = f"{final_noise:.1f}/wk forecast" if final_noise is not None else "n/a"
             print(f"     weekly noise:    v1 {v1_txt} -> v{rule.version} {fin_txt} "
                   f"(budget {st.fp_budget_weekly:g}/wk)")
 

@@ -521,8 +521,9 @@ class PipelineState:
         """
         prev = "0" * 64
         for evt in self.audit:
-            if not evt.event_hash:  # legacy event without a chain; skip strictly
-                prev = evt.event_hash
+            if not evt.event_hash:
+                # Legacy event predating the hash chain: skip it without
+                # resetting `prev`, so a hashed event after it still verifies.
                 continue
             if evt.prev_hash != prev:
                 return False, evt.seq

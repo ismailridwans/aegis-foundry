@@ -393,7 +393,10 @@ class Governor(Agent):
             )
         else:
             rob_ok = True
-            rob_detail = "no labeled attack samples available to red-team (gauntlet skipped)"
+            rob_detail = (
+                "not evaluated — no labeled attack samples for this technique "
+                "(the gauntlet currently ships PowerShell/process-execution mutations)"
+            )
         checks.append(
             PolicyCheck(name="adversarial-robustness", passed=rob_ok, detail=rob_detail)
         )
