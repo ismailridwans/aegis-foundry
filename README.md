@@ -1,129 +1,423 @@
-# Aegis Foundry
+<div align="center">
 
-**The SOC that maintains itself.** An autonomous detection-engineering platform for Splunk: ten governed AI agents that find MITRE ATT&CK coverage gaps, author SPL detections, **backtest them against labeled history via the Splunk MCP Server**, **forecast their alert-noise burden with the Cisco Deep Time Series Model before deployment**, tune them to a false-positive budget, **red-team them against MITRE-faithful evasion variants**, route them through human approval with a full evidence pack, deploy them as native Splunk saved searches — then verify that reality matched the forecast, **quantify the dollar impact**, and **attest the framework controls** they satisfy. Every agent action is recorded in a **tamper-evident, hash-chained audit ledger**.
+<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=800&size=15&duration=3500&pause=800&color=FF5722&center=true&vCenter=true&width=820&lines=%E2%AC%A1+Aegis+Foundry+%E2%80%94+the+SOC+that+maintains+itself;Ten+governed+AI+agents+for+Splunk+detection+engineering;452+alerts%2Fwk+%E2%86%92+2.7+%C2%B7+100%25+true+positives+retained+%C2%B7+~%24295K%2Fyr;Splunk+MCP+%C2%B7+Cisco+CDTSM+%C2%B7+39+tests+%C2%B7+AppInspect-validated" alt="Aegis Foundry Typing Banner" />
 
-![CI](../../actions/workflows/ci.yml/badge.svg)
-🚀 **Live demo:** [aegis-foundry.onrender.com](https://aegis-foundry.onrender.com) — landing at `/`, the full live console at `/console` (free tier; first load after idle wakes in ~30–60s). One-click redeploy from [`render.yaml`](render.yaml).
-**Track:** Security · **Built for the Splunk Agentic Ops Hackathon**
+<br/>
+
+# ⬡ Aegis Foundry
+
+### *The world's first autonomous detection-engineering platform for Splunk — the SOC that maintains itself*
+
+<br/>
+
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-aegis--foundry.onrender.com-000000?style=for-the-badge&logo=render&logoColor=white)](https://aegis-foundry.onrender.com)
+[![Splunk](https://img.shields.io/badge/⛓_Splunk-MCP_+_AI_Toolkit-41D1FF?style=for-the-badge&logo=splunk&logoColor=white)](https://www.splunk.com)
+[![Tests](https://img.shields.io/badge/✅_Tests-39_Passing-3DDC97?style=for-the-badge)](./tests)
+[![CI](https://img.shields.io/github/actions/workflow/status/ismailridwans/aegis-foundry/ci.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](../../actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](./pyproject.toml)
+[![AppInspect](https://img.shields.io/badge/AppInspect-Validated-8B7BFF?style=for-the-badge)](./splunk_app)
+[![License](https://img.shields.io/badge/License-Apache_2.0-FFC24B?style=for-the-badge)](./LICENSE)
+
+<br/>
+
+> **⚡ Hackathon:** Splunk Agentic Ops 2026 · **Track:** Security · **Bonus:** Hosted Models · MCP Server · Developer Tools
+
+</div>
 
 ---
 
-## The problem
+## 🎯 The Problem — Everyone Mops the Floor; Nobody Fixes the Faucet
 
-Detection engineering is the SOC's broken factory. Enterprises run hundreds of correlation searches; a large fraction are stale, broken by schema drift, or were never tuned to the environment they run in. Covering a new threat technique takes days to weeks, because every rule needs authoring, historical validation, false-positive tuning, and change control — all manual.
-
-Downstream, analysts drown in alerts. But alert fatigue is a *symptom*: the cause is untuned, unmeasured detection logic upstream. Every AI copilot that triages alerts faster is mopping the floor. Nobody fixed the faucet.
-
-Aegis Foundry closes the loop *inside Splunk*: gap detection → authoring → backtest → noise forecast → tune → governed deploy → post-deploy verification. Detections stop being artifacts someone wrote once — they become continuously measured, continuously maintained assets.
-
-## What it does (the demo storyline, with real numbers)
-
-One offline run of `demo/run_pipeline.py` reproduces this end-to-end:
-
-1. **Intel Scout** ingests a threat advisory (encoded-PowerShell credential theft, CISA-AA26-117A) → extracts **T1059.001** and **T1003.001**.
-2. **Coverage Cartographer** inventories the existing saved searches via MCP → T1003.001 is covered, **T1059.001 is a gap**.
-3. **Detection Author** drafts a detection, self-correcting its SPL against live syntax validation.
-4. **Backtest Engineer** replays it over 90 days of labeled history via the MCP search plane: **5,818 hits (~452/week observed)** — recall 100%, precision 0.3%.
-5. **Noise Forecaster** forecasts the rule's future fire-rate at **~382/week — massively over the 25-alerts/week budget**.
-6. **Tuning Optimizer** tightens the rule (encoded-command flag, excludes the automation account) → re-backtest: **42 hits (~2.7/week predicted), all 17/17 labeled true positives retained**, precision 40%.
-7. **Red-Team** mutates the labeled attacks into 24 MITRE-faithful evasion variants (case folding, flag aliasing, whitespace tricks, payload swaps) and replays them: **21/24 still fire — 88% adversarial recall.** The one gap (the `-enc` abbreviation) is flagged as a hardening opportunity.
-8. **Governor** runs **8 policy checks** (now including adversarial robustness), writes a Markdown **evidence pack** (SPL diff, backtest table, forecast verdict, gauntlet results), and asks a human — or auto-approves in demo mode.
-9. **Deployer** ships it as a native Splunk saved search (with rollback token).
-10. **Verifier** watches the first post-deploy week: **observed 3.0/week vs forecast 2.7/week — inside the 90% band.** The ATT&CK heatmap cell flips from GAP to **FORGED BY AEGIS**.
-
-The run closes with an **ROI ledger** (≈449.8 alerts/week avoided ≈ **$295k/year** of analyst time, plus authoring cost and MTTD compression) and a **compliance attestation** mapping the new detection to NIST 800-53 (SI-4, SI-3) and CIS Controls v8. Every agent action lands in a **tamper-evident, hash-chained flight recorder** that is itself Splunk-ingestible: the agentic system is observable *and provable* in the same pane of glass as the security data it manages.
-
-## 60-second quickstart (no Splunk, no credentials)
-
-```bash
-pip install -e .
-python demo/run_pipeline.py --auto-approve   # full 10-agent pipeline, offline
-aegis-foundry audit                          # the agent flight recorder
-aegis-foundry heatmap                        # ATT&CK coverage before/after
+```
+╔══════════════════════════════════════════════════════════════════════╗
+║  Every SOC runs hundreds of correlation searches.                    ║
+║  A huge fraction are stale, schema-drifted, or never tuned.           ║
+║                                                                      ║
+║  ┌─────────────────────────┐   ┌──────────────────────────────────┐  ║
+║  │  Alert TRIAGE            │   │  Detection ENGINEERING           │  ║
+║  │  (downstream symptom)    │   │  (upstream — the real cause)     │  ║
+║  │                          │   │                                  │  ║
+║  │  ✅ AI triage copilots   │   │  ❌ Nobody automates this        │  ║
+║  │  ✅ SOAR playbooks       │   │  ❌ Manual authoring (days)      │  ║
+║  │  ✅ Alert rankers        │   │  ❌ Noise discovered in prod     │  ║
+║  └─────────────────────────┘   └──────────────────────────────────┘  ║
+║                                              ↑                       ║
+║                                  THIS IS WHAT WE AUTOMATE            ║
+╚══════════════════════════════════════════════════════════════════════╝
 ```
 
-Drop `--auto-approve` to experience the human-in-the-loop governance gate: the Governor prints the evidence summary and waits for `[a]ctive / [s]hadow / [r]eject`.
+Alert fatigue is a **symptom**. The disease is untuned, unmeasured detection logic upstream. Every AI copilot that triages alerts faster is mopping the floor — none of them reduce the alerts that get created. Covering a new threat technique takes days to weeks: authoring, historical validation, false-positive tuning, change control — all manual.
 
-Run the tests: `pip install -e .[dev] && pytest` (39 tests, including the full end-to-end storyline, the Red-Team gauntlet, the ROI ledger, the tamper-evident audit chain, compliance mapping, and a real-HTTP web-approval flow).
+**Aegis Foundry fixes the faucet.**
 
-## Web console
+---
 
-```bash
-aegis-foundry ui          # then open http://127.0.0.1:8787
+## ⚡ The Solution — A Governed, Self-Maintaining Detection Factory
+
+<div align="center">
+
+```
+Advisory in → gap found → SPL authored → backtested → forecast-gated → red-teamed → governed → deployed → verified
+     ↑                                                                                              ↑
+ ATT&CK technique                                                          observed drift checked vs forecast
 ```
 
-A stdlib-only web console — no frameworks, no CDN, works fully offline — built as an **eleven-view, navigation-driven operations dashboard** in liquid-glass design: a **Command Center** with an ROI banner and headline KPIs, the **live pipeline** stepper as the ten agents hand off, **ATT&CK coverage**, a **Noise Lab** (backtest vs forecast + CDTSM confidence-band chart), the **Red-Team Gauntlet** (adversarial-recall rings and the evasion-variant ledger), **Governance** with browser-based approvals and the 8-check policy gate, **Deployments** with rollback tokens and drift, **Compliance** attestations, the tamper-evident **Flight Recorder**, the **AI Model** stack, and **Run History**. Recommended demo flow: start a run with auto-approve **off** (the default), then make the active/shadow/reject call from the browser — the Governor blocks on your decision and falls back to safe shadow deployment on timeout.
+</div>
 
-## Live mode (real Splunk)
+Aegis Foundry is a **ten-agent autonomous pipeline** that closes the entire detection lifecycle *inside Splunk*: it finds MITRE ATT&CK coverage gaps, authors SPL detections, backtests them against labeled history via the **Splunk MCP Server**, forecasts their alert-noise burden with the **Cisco Deep Time Series Model** *before* deployment, tunes them to a false-positive budget, **red-teams them against evasion variants**, gates them behind an evidence-pack + human approval, deploys them as native Splunk saved searches, and then verifies that reality matched the forecast — quantifying the dollar impact and attesting the framework controls satisfied. Every agent action lands in a **tamper-evident, hash-chained audit ledger**.
 
-Set `AEGIS_MODE=live` and the **same ten agents** drive a real deployment. Copy [.env.example](.env.example) and fill in:
+---
 
-| Variable | Purpose |
-|---|---|
-| `SPLUNK_MCP_URL` / `SPLUNK_MCP_TOKEN` | Splunk MCP Server (Splunkbase app), bearer-token auth — OAuth is not yet GA |
-| `SPLUNK_REST_URL` / `SPLUNK_REST_TOKEN` | Management REST API used by the Deployer (the governed write plane) |
-| `AEGIS_BACKTEST_INDEX` | Labeled historical data — e.g. the public Splunk **BOTS v3** dataset (`botsv3`) |
-| `AEGIS_LLM_BASE_URL` | Any OpenAI-compatible endpoint for the authoring models |
+## 🔬 Three Core Innovations
 
-**Models, two ways:**
+<table>
+<tr>
+<td width="33%" align="center">
 
-- **Splunk Cloud (hosted models):** AI Toolkit 5.7+ gives the Noise Forecaster real `| apply CDTSM` zero-shot forecasting and the `| ai` command path to Splunk-hosted **Foundation-Sec-1.1-8B** and **gpt-oss** — data never leaves Splunk.
-- **Anywhere else (open weights):** `docker compose up -d splunk ollama`, then `ollama pull gpt-oss:20b` (and/or serve `fdtn-ai/Foundation-Sec-1.1-8B-Instruct` via vLLM). When CDTSM is unreachable the forecaster degrades to a deterministic EWMA + seasonal model and **labels itself honestly** (`fallback-ewma`) in every forecast, evidence pack, and dashboard.
+### 🔮 Forecast-Gated Deploy
+**Price the noise before it ships**
 
-## How this uses Splunk's AI stack
+The Cisco Deep Time Series Model forecasts a rule's future alert volume *before* deployment:
+
+```
+predicted/wk  vs  budget/wk
+   382.3      >     25     ❌
+    2.7       ≤     25     ✅
+```
+
+Over budget means it **does not ship**. Alert noise becomes a pre-deploy contract, not a post-deploy apology.
+
+</td>
+<td width="33%" align="center">
+
+### ⚔️ Red-Team Gauntlet
+**Verified vs the future, not the past**
+
+Backtest recall measures history. The Red-Team agent mutates labeled attacks into MITRE-faithful evasion variants and replays them:
+
+```
+24 variants → 21 caught
+adversarial recall = 88%
+miss: -enc alias (flagged)
+```
+
+A real adversarial-robustness gate, not a vibe.
+
+</td>
+<td width="33%" align="center">
+
+### 🔒 Provable Governance
+**Trust as a feature**
+
+Every deploy carries an **evidence pack** + **8 policy checks**, a human gate, and:
+
+- SHA-256 **hash-chained audit** (tamper-evident)
+- **ROI ledger** (~$295K/yr saved)
+- **NIST 800-53 / CIS** attestation
+
+Observable *and provable* in one pane of glass.
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🗺️ How It Works — Full Pipeline Flow
+
+```mermaid
+flowchart TD
+    ADV["📥 Threat advisory\nCISA AA26-117A"] --> IS["1 · Intel Scout\nextract ATT&CK techniques"]
+    IS --> CC["2 · Coverage Cartographer\nmap live rules → gap T1059.001"]
+    CC --> DA["3 · Detection Author\ndraft SPL · self-correct on validation"]
+    DA --> BE["4 · Backtest Engineer\nreplay 90d labeled history · 5,818 hits"]
+    BE --> NF["5 · Noise Forecaster\nCDTSM forecast → 382/wk OVER budget"]
+    NF -->|over budget| TO["6 · Tuning Optimizer\ntighten rule → v2"]
+    TO -->|re-measure| BE
+    TO -->|within budget · 2.7/wk| RT["7 · Red-Team\n24 evasion variants · 88% caught"]
+    RT --> GOV["8 · Governor\n8 policy checks + evidence pack + human gate"]
+    GOV -->|approve active| DEP["9 · Deployer\nnative saved search + rollback token"]
+    DEP --> VER["10 · Verifier\nweek-1 observed 3.0/wk · drift 1.11 · in band"]
+    VER --> DONE["✅ FORGED BY AEGIS\nROI ~$295K/yr · NIST/CIS attested · audit chain intact"]
+```
+
+---
+
+## 🏗️ Architecture — Read Plane vs Write Plane
+
+```mermaid
+flowchart LR
+    subgraph SWARM["🤖 Ten-Agent Swarm (aegis_foundry/agents)"]
+        A["Intel Scout → Cartographer → Author → Backtest →\nForecaster → Tuner → Red-Team → Governor → Deployer → Verifier"]
+    end
+
+    subgraph SPLUNK["⛓ Splunk Platform"]
+        MCP["Splunk MCP Server\ntoken auth · READ PLANE"]
+        REST["Management REST API\nWRITE PLANE (gated by Governor)"]
+        IDX["(Indexes\nbotsv3 labeled history\naegis_audit flight recorder)"]
+        SS["savedsearches\ndeployed detections"]
+    end
+
+    subgraph AI["🧠 AI Models"]
+        FSEC["Foundation-Sec-1.1-8B\nMITRE mapping + rationale"]
+        GPT["gpt-oss-120b / 20b\nSPL authoring + tuning"]
+        CDTSM["Cisco Deep Time Series Model\n| apply CDTSM (EWMA fallback)"]
+        SAIA["Splunk AI Assistant\nsaia_generate_spl"]
+    end
+
+    A <--> MCP
+    A -.-> FSEC & GPT & CDTSM & SAIA
+    CDTSM -.-> MCP
+    MCP <--> IDX
+    A -->|"after Governor approval"| REST --> SS
+    A -->|"hash-chained audit events"| IDX
+```
+
+> 📐 Full diagrams (system overview + sequence + deployment modes + trust boundaries) live in **[architecture_diagram.md](architecture_diagram.md)** at the repo root.
+
+---
+
+## 🔄 Default-to-Deploy Lifecycle — Sequence
+
+```mermaid
+sequenceDiagram
+    actor Ops as 👤 SOC Operator
+    participant Swarm as 🤖 Agent Swarm
+    participant MCP as Splunk MCP
+    participant CDTSM as CDTSM Forecaster
+    participant Gov as Governor
+    participant REST as Splunk REST
+
+    Swarm->>MCP: list saved searches → gap T1059.001
+    Swarm->>MCP: validate + backtest SPL (90d) → 5,818 hits, recall 1.0
+    Swarm->>CDTSM: forecast weekly noise → 382/wk (OVER 25/wk budget)
+    Swarm->>Swarm: tune → v2 → re-forecast 2.7/wk ✅
+    Swarm->>Swarm: red-team → 21/24 evasion variants caught (88%)
+    Swarm->>Gov: evidence pack + 8 policy checks
+    Gov-->>Ops: approve active / shadow / reject ?
+    Ops->>Gov: approve active ✅
+    Gov->>REST: create saved search + rollback token
+    Swarm->>MCP: verify week-1 → 3.0/wk vs 2.7 forecast · drift 1.11 in band
+    Note over Swarm: ROI ~$295K/yr · NIST/CIS attested · audit chain verified
+```
+
+---
+
+## 🤝 The Ten-Agent Suite
+
+<details>
+<summary><strong>📂 Click to expand — all ten governed agents</strong></summary>
+
+<br/>
+
+| # | Agent | Purpose | Key Feature |
+|:-:|-------|---------|-------------|
+| 1 | `intel_scout` | Ingest intelligence | Extracts ATT&CK techniques from advisories (Foundation-Sec) |
+| 2 | `coverage_cartographer` | Map coverage | Diffs intel vs live saved-search inventory → scored gaps |
+| 3 | `detection_author` | Author SPL | Drafts detections, self-corrects against live syntax validation |
+| 4 | `backtest_engineer` | Measure | Replays 90d labeled history via MCP → recall, precision, timeline |
+| 5 | `noise_forecaster` | Forecast | `\| apply CDTSM` future weekly alert volume (honest EWMA fallback) |
+| 6 | `tuning_optimizer` | Tune | Tightens over-budget rules into new versions until noise fits budget |
+| 7 | `red_team` | Harden | Mutates attacks into evasion variants → adversarial recall |
+| 8 | `governor` | Govern | 8 policy checks + evidence pack + human/policy approval gate |
+| 9 | `deployer` | Deploy | Ships native Splunk saved search with a rollback token |
+| 10 | `verifier` | Verify | Week-1 observed vs forecast band → ok / retune / auto-rollback |
+
+</details>
+
+---
+
+## 🧪 Test Coverage — 39 Tests, Zero Compromises
+
+| Test Suite | Tests | Status |
+|---|:---:|:---:|
+| Pipeline state & contracts | 4 | ✅ Passing |
+| Mock MCP / pinned SPL dialect | 7 | ✅ Passing |
+| Noise forecaster (CDTSM + fallback) | 3 | ✅ Passing |
+| First-three-agents golden path | 2 | ✅ Passing |
+| End-to-end storyline | 5 | ✅ Passing |
+| Web console (real-HTTP e2e + approvals) | 4 | ✅ Passing |
+| Red-Team gauntlet | 2 | ✅ Passing |
+| ROI ledger | 4 | ✅ Passing |
+| Tamper-evident audit chain | 4 | ✅ Passing |
+| Compliance attestation | 4 | ✅ Passing |
+| **TOTAL** | **39** | **✅ 39 / 39** |
+
+CI runs lint (ruff) · unit tests (Python 3.11 + 3.12) · the offline golden-path demo · **AppInspect precert** (failures block the build).
+
+---
+
+## 🚀 Live Demo
+
+<div align="center">
+
+| Resource | Link |
+|---------|------|
+| 🌐 **Live Console** | [aegis-foundry.onrender.com](https://aegis-foundry.onrender.com) |
+| 🖥 **Dashboard** | [aegis-foundry.onrender.com/console](https://aegis-foundry.onrender.com/console) |
+| 📦 **GitHub** | [ismailridwans/aegis-foundry](https://github.com/ismailridwans/aegis-foundry) |
+
+</div>
+
+The console is an **eleven-view, navigation-driven operations dashboard** in liquid-glass design:
+
+```
+📊 Command Center  → ROI banner, headline KPIs, live feed
+🔧 Pipeline        → the ten agents handing off live + per-agent detail
+🛡  ATT&CK Coverage → gap cells flip to FORGED BY AEGIS + threat-intel feed
+📈 Noise Lab       → backtest vs forecast + CDTSM confidence-band chart
+⚔️  Red-Team       → adversarial-recall ring + evasion-variant ledger
+⚖️  Governance     → browser approvals + 8-check policy gate + evidence packs
+🚀 Deployments     → native saved searches + rollback token + drift
+📋 Compliance      → NIST 800-53 / CIS Controls attestation
+🛰  Flight Recorder → tamper-evident hash-chained audit ledger
+🧠 AI Models       → the Cisco + Splunk model stack + live forecaster status
+🕘 Run History     → every run and its headline outcome
+```
+
+> ⏱ Free Render tier sleeps after ~15 min idle — the first hit then wakes it in ~30–60s.
+
+---
+
+## ⛓ How Aegis Uses Splunk's AI Stack
 
 | Splunk capability | Where it lives in Aegis Foundry |
 |---|---|
-| **Splunk MCP Server** (streamable HTTP, token auth) | [`core/mcp_client.py`](aegis_foundry/core/mcp_client.py) — the agents' *only* read plane: search execution, SPL validation, saved-search discovery |
-| **Hosted model: Cisco Deep Time Series Model** | [`core/hosted_models.py`](aegis_foundry/core/hosted_models.py) — `| apply CDTSM` via the search plane (`forecast_from_spl`), honest labeled fallback |
-| **Hosted model: Foundation-Sec-1.1-8B** | Security reasoning + MITRE mapping ([`agents/coverage_cartographer.py`](aegis_foundry/agents/coverage_cartographer.py)); servable open-weight for judges |
-| **Hosted models: gpt-oss-120b / 20b** | Detection authoring + tuning ([`agents/detection_author.py`](aegis_foundry/agents/detection_author.py), [`agents/tuning_optimizer.py`](aegis_foundry/agents/tuning_optimizer.py)) |
-| **AI Toolkit `\| ai` command** | [`core/llm.py`](aegis_foundry/core/llm.py) `SplunkAICommandLLM` — completions routed through SPL so data stays in Splunk |
-| **Splunk AI Assistant (`saia_*` MCP tools)** | `generate_spl` in the MCP client — NL→SPL drafting path |
-| **Python SDK app patterns** | [`splunk_app/`](splunk_app/) — packaged app with custom alert action (`aegis_triage`), modular-input-style intel feed, ATT&CK Coverage + Flight Recorder dashboards |
-| **AppInspect / dev tools** | [`scripts/package_app.py`](scripts/package_app.py) + [`ci.yml`](.github/workflows/ci.yml) `appinspect` job (precert mode, failures block the build) |
-
-## Governance & safety
-
-Agentic ops without governance is a liability. Aegis Foundry treats trust as a feature:
-
-- **Evidence packs** — every proposal ships with the SPL diff, backtest table, forecast band, adversarial-robustness results, and **8 explicit policy checks** (true-positive preservation, noise budget, adversarial robustness, blast-radius scan for destructive SPL, …). See a real one in [`runs/`](runs/) after any demo run.
-- **Human-in-the-loop** — interactive approval with shadow-deploy as the safe default; `auto-approve` is an explicit demo/CI flag. This implements the human-oversight guidance from the Foundation-Sec model card.
-- **Shadow mode & rollback** — every deployment returns a rollback token; the Verifier auto-rolls back runaway rules (>10× budget).
-- **Tamper-evident flight recorder** — append-only JSONL audit of every agent decision, **SHA-256 hash-chained** (each event binds the prior event's hash, so editing any past entry breaks the chain — `verify_audit_chain()` pinpoints where). Ingestible into the `aegis_audit` index and visualized in the bundled **Agent Flight Recorder** dashboard.
-- **Read/write separation** — agents read through MCP; the only write path (deployment) sits behind the Governor.
-
-## Beyond the baseline — four deep capabilities
-
-Most detection tooling stops at "the agent wrote a rule." Aegis Foundry goes further:
-
-- **Adversarial Robustness Gauntlet** (a 10th agent, the `HARDEN` stage) — backtest recall only measures the *past*. The Red-Team agent mutates each within-budget rule's labeled true positives into MITRE-faithful evasion variants and replays them against the rule's own SPL predicate, reporting **adversarial recall** and concrete hardening gaps. It feeds an 8th Governor policy check. The mutation battery currently targets PowerShell/process-execution TTPs (the demo's T1059.001); it is structured to extend per technique, and a rule with no labeled samples is recorded as *not evaluated* rather than a silent pass. [`agents/red_team.py`](aegis_foundry/agents/red_team.py), [`core/spl_match.py`](aegis_foundry/core/spl_match.py)
-- **ROI ledger** — converts the run's *measured* numbers (noise avoided, detections shipped, time-to-coverage) into analyst-hours, dollars, and MTTD-days saved (~**$295k/yr** on the demo). [`core/roi.py`](aegis_foundry/core/roi.py)
-- **Tamper-evident audit ledger** — the flight recorder is a verifiable hash chain. [`state.py`](aegis_foundry/state.py) `verify_audit_chain()`, exposed at `GET /api/runs/{id}/audit`.
-- **Compliance attestation** — maps each forged technique to NIST 800-53 and CIS Controls v8 safeguards for an auditor-facing record. [`core/compliance.py`](aegis_foundry/core/compliance.py)
-
-## Architecture
-
-See **[architecture_diagram.md](architecture_diagram.md)** (required diagrams + data flow + trust boundaries).
-
-```
-aegis_foundry/          the platform
-  agents/               the ten agents (intel_scout ... red_team ... verifier)
-  core/                 MCP client, hosted models, LLM clients, audit, memory,
-                        roi, compliance, spl_match, factory
-  orchestrator.py       the lifecycle state machine
-  web/                  stdlib console server + the eleven-view dashboard
-  cli.py                run | audit | heatmap | ui
-demo/                   offline golden path + synthetic BOTS-style labeled corpus
-splunk_app/             installable Splunk app (dashboards, alert action, conf)
-scripts/package_app.py  builds dist/aegis_foundry.spl
-tests/                  39 tests incl. the full e2e storyline + deep-feature suites
-```
-
-## Submission
-
-- **[docs/SUBMISSION.md](docs/SUBMISSION.md)** — the Devpost kit: elevator pitch, paste-ready description, 3-minute video script, rules checklist, and judge Q&A.
+| **Splunk MCP Server** (streamable HTTP, token auth) | [`core/mcp_client.py`](aegis_foundry/core/mcp_client.py) — the agents' *only* read plane: search, SPL validation, saved-search discovery |
+| **Hosted: Cisco Deep Time Series Model** | [`core/hosted_models.py`](aegis_foundry/core/hosted_models.py) — `\| apply CDTSM`, honest labeled EWMA fallback |
+| **Hosted: Foundation-Sec-1.1-8B** | MITRE mapping + rationale ([`agents/coverage_cartographer.py`](aegis_foundry/agents/coverage_cartographer.py)) |
+| **Hosted: gpt-oss-120b / 20b** | SPL authoring + tuning ([`agents/detection_author.py`](aegis_foundry/agents/detection_author.py), [`agents/tuning_optimizer.py`](aegis_foundry/agents/tuning_optimizer.py)) |
+| **AI Toolkit `\| ai` command** | [`core/llm.py`](aegis_foundry/core/llm.py) — completions routed through SPL so data stays in Splunk |
+| **Splunk AI Assistant (`saia_*`)** | NL→SPL drafting path in the MCP client |
+| **Python SDK app patterns** | [`splunk_app/`](splunk_app/) — alert action, ATT&CK Coverage + Flight Recorder dashboards |
+| **AppInspect / Dev Tools** | [`scripts/package_app.py`](scripts/package_app.py) + [`ci.yml`](.github/workflows/ci.yml) precert job |
 
 ---
 
-*Built for the **Splunk Agentic Ops Hackathon** (Security track). Designed to showcase the **Splunk MCP Server**, **Splunk Hosted Models** (CDTSM, Foundation-Sec, gpt-oss), and **Splunk Developer Tools** (SDK app patterns, AppInspect-validated packaging).*
+## ⚙️ Quick Start — Runs Offline in 60 Seconds (No Splunk, No Credentials)
+
+```bash
+# Clone and install
+git clone https://github.com/ismailridwans/aegis-foundry.git
+cd aegis-foundry
+pip install -e .
+
+# Run the full 10-agent pipeline against bundled fixtures
+python demo/run_pipeline.py --auto-approve
+
+# Launch the web console (landing + 11-view dashboard)
+aegis-foundry ui                 # → http://127.0.0.1:8787
+
+# Inspect a run
+aegis-foundry audit              # the tamper-evident flight recorder
+aegis-foundry heatmap            # ATT&CK coverage before/after
+
+# Run the test suite (39 tests)
+pip install -e .[dev] && pytest
+```
+
+Drop `--auto-approve` to experience the **human-in-the-loop** governance gate (active / shadow / reject), with shadow-deploy as the safe default.
+
+**Prerequisites:** Python 3.10+. That's it for the offline demo — fixtures, fonts, and assets are all bundled.
+
+<details>
+<summary><strong>🌐 Live mode (real Splunk) — click to expand</strong></summary>
+
+<br/>
+
+Set `AEGIS_MODE=live`; the **same ten agents** drive a real deployment. Copy [`.env.example`](.env.example) and fill in:
+
+| Variable | Purpose |
+|---|---|
+| `SPLUNK_MCP_URL` / `SPLUNK_MCP_TOKEN` | Splunk MCP Server (Splunkbase app), bearer-token auth |
+| `SPLUNK_REST_URL` / `SPLUNK_REST_TOKEN` | Management REST API (the Deployer's governed write plane) |
+| `AEGIS_BACKTEST_INDEX` | Labeled history — e.g. the public Splunk **BOTS v3** dataset (`botsv3`) |
+| `AEGIS_LLM_BASE_URL` | Any OpenAI-compatible endpoint for the authoring models |
+
+- **Splunk Cloud (hosted models):** AI Toolkit 5.7+ gives real `\| apply CDTSM` and `\| ai` access to Foundation-Sec / gpt-oss — data never leaves Splunk.
+- **Anywhere (open weights):** `docker compose up -d splunk ollama`, `ollama pull gpt-oss:20b`. When CDTSM is unreachable the forecaster degrades to a deterministic EWMA model and labels itself `fallback-ewma` in every artifact.
+
+</details>
+
+---
+
+## 🏆 Judging Criteria Alignment
+
+<details>
+<summary><strong>📋 Click to see how Aegis maps to every evaluation dimension</strong></summary>
+
+<br/>
+
+### ✅ Stage 1 — Theme & API Fit
+**Genuinely agentic ops on Splunk.** Ten autonomous agents that *act* on Splunk (not a chat copilot), built on the **Splunk MCP Server**, **CDTSM**, **hosted models** (Foundation-Sec, gpt-oss), the **AI Toolkit `\| ai`** command, **SAIA**, and **AppInspect**.
+
+---
+
+### ✅ Technological Implementation
+**10-agent state machine with a measurement/tune loop**, MCP + CDTSM integration, mock/live dual mode, **39 passing tests**, **green CI**, and an **AppInspect-validated** Splunk app. Tamper-evident hash-chained audit; self-correcting SPL authoring.
+
+---
+
+### ✅ Design
+**Premium liquid-glass landing page + an 11-view operations console** — Command Center KPIs, live pipeline, ATT&CK forge, Noise Lab, Red-Team gauntlet, governance approvals, deployments, compliance, flight recorder. Verified live, zero JS errors.
+
+---
+
+### ✅ Potential Impact
+**Quantified ROI: ~$295K/year** of analyst time saved on a single rule (449.8 alerts/week avoided), 99%+ noise reduction, days-to-minutes time-to-coverage. Attacks the cause of alert fatigue, not the symptom.
+
+---
+
+### ✅ Quality of Idea
+**Upstream of triage** — every competitor ranks or summarizes alerts; Aegis reduces the alerts that get created. Forecast-gated deployment, adversarial red-teaming, and provable governance are each, individually, novel for a SOC tool.
+
+</details>
+
+---
+
+## 🛡 Governance & Safety
+
+- **Evidence packs** — SPL diff, backtest table, forecast band, adversarial-robustness results, and **8 policy checks** (true-positive preservation, noise budget, adversarial robustness, blast-radius scan, …).
+- **Human-in-the-loop** — interactive approval with shadow-deploy as the safe default and timeout fallback.
+- **Shadow mode & rollback** — every deployment returns a rollback token; the Verifier auto-rolls back runaway rules (>10× budget).
+- **Tamper-evident flight recorder** — every decision is SHA-256 hash-chained; edit any past entry and `verify_audit_chain()` pinpoints the break.
+- **Read/write separation** — agents read via MCP; the only write path (deployment) sits behind the Governor.
+
+---
+
+## 🧠 Why Aegis Stands Out
+
+<div align="center">
+
+| Dimension | Every Other SOC Tool | Aegis Foundry |
+|-----------|----------------------|---------------|
+| Where it acts | Downstream (triage) | **Upstream (detection engineering)** |
+| What it produces | Ranked alerts | **Governed, deployed detections** |
+| Noise control | Discovered in prod | **Forecast-gated before deploy** |
+| Verification | Historical recall only | **+ adversarial red-team gauntlet** |
+| Audit trail | Flat log | **SHA-256 hash-chained, tamper-evident** |
+| Business case | Implicit | **Quantified ROI + NIST/CIS attestation** |
+| Runs offline | Rarely | **Fully — 60-second demo, no credentials** |
+
+</div>
+
+---
+
+## 📄 License
+
+Apache-2.0 © 2026 Aegis Foundry — see [LICENSE](LICENSE).
+
+<div align="center">
+<br/>
+
+**⬡ Aegis Foundry — Stop triaging. Start forging.**
+
+*The SOC that maintains itself: autonomous, governed, verifiable detection engineering inside Splunk.*
+
+<br/>
+
+[![Built for Splunk](https://img.shields.io/badge/Built_for-Splunk_Agentic_Ops-FF5722?style=flat-square&logo=splunk&logoColor=white)](https://www.splunk.com)
+[![Hosted Models](https://img.shields.io/badge/Cisco-CDTSM_+_Foundation--Sec-41D1FF?style=flat-square)](https://www.cisco.com)
+[![Live Demo](https://img.shields.io/badge/Deployed-Render-8B7BFF?style=flat-square&logo=render&logoColor=white)](https://aegis-foundry.onrender.com)
+
+</div>
